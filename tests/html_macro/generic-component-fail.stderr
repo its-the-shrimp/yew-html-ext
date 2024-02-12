@@ -1,0 +1,113 @@
+error: this opening tag has no corresponding closing tag
+  --> tests/html_macro/generic-component-fail.rs:42:13
+   |
+42 |     html! { <Generic<String>> };
+   |             ^^^^^^^^^^^^^^^^^
+
+error: mismatched closing tags: expected `Generic<String>`, found `Generic`
+  --> tests/html_macro/generic-component-fail.rs:43:14
+   |
+43 |     html! { <Generic<String>></Generic> };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: mismatched closing tags: expected `Generic<String>`, found `Generic<Vec<String>>`
+  --> tests/html_macro/generic-component-fail.rs:44:14
+   |
+44 |     html! { <Generic<String>></Generic<Vec<String>>> };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: mismatched closing tags: expected `Generic<String>`, found `Generic<std::path::Path>`
+  --> tests/html_macro/generic-component-fail.rs:46:14
+   |
+46 |     html! { <Generic<String>></Generic<std::path::Path>> };
+   |              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error: expected a valid closing tag for component
+       note: found opening tag `<Generic<String>>`
+       help: try `</Generic<String>>`
+  --> tests/html_macro/generic-component-fail.rs:47:30
+   |
+47 |     html! { <Generic<String>></> };
+   |                              ^^^
+
+error[E0412]: cannot find type `Context` in this scope
+  --> tests/html_macro/generic-component-fail.rs:14:22
+   |
+14 |     fn create(_ctx: &Context<Self>) -> Self {
+   |                      ^^^^^^^ not found in this scope
+   |
+help: consider importing one of these items
+   |
+1  | use core::task::Context;
+   |
+1  | use std::task::Context;
+   |
+1  | use yew::Context;
+   |
+
+error[E0412]: cannot find type `Context` in this scope
+  --> tests/html_macro/generic-component-fail.rs:17:27
+   |
+17 |     fn view(&self, _ctx: &Context<Self>) -> Html {
+   |                           ^^^^^^^ not found in this scope
+   |
+help: consider importing one of these items
+   |
+1  | use core::task::Context;
+   |
+1  | use std::task::Context;
+   |
+1  | use yew::Context;
+   |
+
+error[E0412]: cannot find type `Html` in this scope
+  --> tests/html_macro/generic-component-fail.rs:17:45
+   |
+17 |     fn view(&self, _ctx: &Context<Self>) -> Html {
+   |                                             ^^^^ not found in this scope
+   |
+help: consider importing this type alias
+   |
+1  | use yew::Html;
+   |
+
+error[E0412]: cannot find type `Context` in this scope
+  --> tests/html_macro/generic-component-fail.rs:34:22
+   |
+34 |     fn create(_ctx: &Context<Self>) -> Self {
+   |                      ^^^^^^^ not found in this scope
+   |
+help: consider importing one of these items
+   |
+1  | use core::task::Context;
+   |
+1  | use std::task::Context;
+   |
+1  | use yew::Context;
+   |
+
+error[E0412]: cannot find type `Context` in this scope
+  --> tests/html_macro/generic-component-fail.rs:37:27
+   |
+37 |     fn view(&self, _ctx: &Context<Self>) -> Html {
+   |                           ^^^^^^^ not found in this scope
+   |
+help: consider importing one of these items
+   |
+1  | use core::task::Context;
+   |
+1  | use std::task::Context;
+   |
+1  | use yew::Context;
+   |
+
+error[E0412]: cannot find type `Html` in this scope
+  --> tests/html_macro/generic-component-fail.rs:37:45
+   |
+37 |     fn view(&self, _ctx: &Context<Self>) -> Html {
+   |                                             ^^^^ not found in this scope
+   |
+help: consider importing this type alias
+   |
+1  | use yew::Html;
+   |
