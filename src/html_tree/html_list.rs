@@ -1,14 +1,14 @@
 use std::ops::Not;
 
+use super::html_dashed_name::HtmlDashedName;
+use super::{HtmlChildrenTree, TagTokens};
+use crate::props::Prop;
+use crate::{Peek, PeekValue};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::Expr;
-use super::html_dashed_name::HtmlDashedName;
-use super::{HtmlChildrenTree, TagTokens};
-use crate::props::Prop;
-use crate::{Peek, PeekValue};
 
 pub struct HtmlList {
     open: HtmlListOpen,
@@ -102,11 +102,13 @@ impl PeekValue<()> for HtmlListOpen {
     fn peek(cursor: Cursor) -> Option<()> {
         let (punct, cursor) = cursor.punct()?;
         if punct.as_char() != '<' {
-            return None
+            return None;
         }
         // make sure it's either a property (key=value) or it's immediately closed
         if let Some((_, cursor)) = HtmlDashedName::peek(cursor) {
-            matches!(cursor.punct()?.0.as_char(), '=' | '?').not().then_some(())
+            matches!(cursor.punct()?.0.as_char(), '=' | '?')
+                .not()
+                .then_some(())
         } else {
             matches!(cursor.punct()?.0.as_char(), '>').then_some(())
         }
@@ -160,7 +162,10 @@ impl PeekValue<()> for HtmlListClose {
     fn peek(cursor: Cursor) -> Option<()> {
         let (_, cursor) = cursor.punct().filter(|(punct, _)| punct.as_char() == '<')?;
         let (_, cursor) = cursor.punct().filter(|(punct, _)| punct.as_char() == '/')?;
-        cursor.punct().map_or(false, |(punct, _)| punct.as_char() == '>').then_some(())
+        cursor
+            .punct()
+            .map_or(false, |(punct, _)| punct.as_char() == '>')
+            .then_some(())
     }
 }
 

@@ -1,6 +1,6 @@
-use std::fmt;
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, ToTokens};
+use std::fmt;
 use syn::buffer::Cursor;
 use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
@@ -42,8 +42,8 @@ impl Peek<'_, Self> for HtmlDashedName {
     fn peek(cursor: Cursor) -> Option<(Self, Cursor)> {
         let (name, cursor) = cursor.ident()?;
         if !non_capitalized_ascii(&name.to_string()) {
-            return None
-        }    
+            return None;
+        }
 
         let mut extended = Vec::new();
         let mut cursor = cursor;

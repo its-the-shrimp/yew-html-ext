@@ -23,7 +23,7 @@ impl Parse for HtmlNode {
             }
             HtmlNode::Literal(Box::new(lit))
         } else {
-            HtmlNode::Expression(Box::new(input.parse()?))
+            HtmlNode::Expression(input.parse()?)
         };
 
         Ok(node)

@@ -1,3 +1,4 @@
+use crate::{is_ide_completion, PeekValue};
 use proc_macro2::{Delimiter, Ident, Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
@@ -5,17 +6,17 @@ use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{braced, token, Token};
-use crate::{is_ide_completion, PeekValue};
 
 mod html_block;
 mod html_component;
 mod html_dashed_name;
 mod html_element;
+mod html_for;
 mod html_if;
 mod html_iterable;
 mod html_list;
+mod html_match;
 mod html_node;
-mod html_for;
 mod tag;
 
 use html_block::HtmlBlock;
@@ -30,6 +31,7 @@ use tag::TagTokens;
 
 use self::html_block::BlockContent;
 use self::html_for::HtmlFor;
+use self::html_match::HtmlMatch;
 
 struct TokenIter<'cursor>(Cursor<'cursor>);
 
@@ -50,6 +52,7 @@ pub enum HtmlType {
     Element,
     If,
     For,
+    Match,
     Empty,
 }
 
@@ -60,6 +63,7 @@ pub enum HtmlTree {
     Element(Box<HtmlElement>),
     If(Box<HtmlIf>),
     For(Box<HtmlFor>),
+    Match(Box<HtmlMatch>),
     Empty,
 }
 
@@ -69,12 +73,13 @@ impl Parse for HtmlTree {
             .ok_or_else(|| input.error("expected a valid html element"))?;
         let html_tree = match html_type {
             HtmlType::Empty => HtmlTree::Empty,
-            HtmlType::Component => HtmlTree::Component(Box::new(input.parse()?)),
-            HtmlType::Element => HtmlTree::Element(Box::new(input.parse()?)),
-            HtmlType::Block => HtmlTree::Block(Box::new(input.parse()?)),
-            HtmlType::List => HtmlTree::List(Box::new(input.parse()?)),
-            HtmlType::If => HtmlTree::If(Box::new(input.parse()?)),
-            HtmlType::For => HtmlTree::For(Box::new(input.parse()?)),
+            HtmlType::Component => HtmlTree::Component(input.parse()?),
+            HtmlType::Element => HtmlTree::Element(input.parse()?),
+            HtmlType::Block => HtmlTree::Block(input.parse()?),
+            HtmlType::List => HtmlTree::List(input.parse()?),
+            HtmlType::If => HtmlTree::If(input.parse()?),
+            HtmlType::For => HtmlTree::For(input.parse()?),
+            HtmlType::Match => HtmlTree::Match(input.parse()?),
         };
         Ok(html_tree)
     }
@@ -97,6 +102,8 @@ impl HtmlTree {
             Some(HtmlType::If)
         } else if HtmlFor::peek(cursor).is_some() {
             Some(HtmlType::For)
+        } else if HtmlMatch::peek(cursor).is_some() {
+            Some(HtmlType::Match)
         } else if input.peek(Token![<]) {
             let _lt: Token![<] = input.parse().ok()?;
 
@@ -144,6 +151,7 @@ impl ToTokens for HtmlTree {
             HtmlTree::Block(block) => block.to_tokens(tokens),
             HtmlTree::If(block) => block.to_tokens(tokens),
             HtmlTree::For(block) => block.to_tokens(tokens),
+            HtmlTree::Match(block) => block.to_tokens(tokens),
         }
     }
 }
@@ -158,14 +166,14 @@ impl Parse for HtmlRoot {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let html_root = if HtmlIterable::peek(input.cursor()).is_some() {
             if TokenIter(input.cursor()).any(|t| matches!(t, TokenTree::Ident(i) if i == "in")) {
-                Self::Tree(HtmlTree::For(Box::new(input.parse()?)))
+                Self::Tree(HtmlTree::For(input.parse()?))
             } else {
-                Self::Iterable(Box::new(input.parse()?))
+                Self::Iterable(input.parse()?)
             }
         } else if HtmlTree::peek_html_type(input).is_some() {
             Self::Tree(input.parse()?)
         } else {
-            Self::Node(Box::new(input.parse()?))
+            Self::Node(input.parse()?)
         };
 
         if !input.is_empty() {

@@ -1,4 +1,4 @@
-use proc_macro2::{Delimiter, Span, TokenStream, Group};
+use proc_macro2::{Delimiter, Group, Span, TokenStream};
 use proc_macro_error::emit_warning;
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
@@ -190,29 +190,32 @@ impl ToTokens for HtmlElement {
                     ))
                 },
             );
-            let class_attr = classes.as_ref().and_then(|classes| match classes.value.try_into_lit() {
-                Some(lit) => {
-                    if lit.value().is_empty() {
-                        None
-                    } else {
-                        Some((
-                            LitStr::new("class", lit.span()),
-                            Value::Static(quote! { #lit }),
-                            None,
-                        ))
-                    }
-                }
-                None => {
-                    let expr = &classes.value;
-                    Some((
-                        LitStr::new("class", classes.label.span()),
-                        Value::Dynamic(quote! {
-                            ::std::convert::Into::<::yew::html::Classes>::into(#expr)
-                        }),
-                        None,
-                    ))
-                }
-            });
+            let class_attr =
+                classes
+                    .as_ref()
+                    .and_then(|classes| match classes.value.try_into_lit() {
+                        Some(lit) => {
+                            if lit.value().is_empty() {
+                                None
+                            } else {
+                                Some((
+                                    LitStr::new("class", lit.span()),
+                                    Value::Static(quote! { #lit }),
+                                    None,
+                                ))
+                            }
+                        }
+                        None => {
+                            let expr = &classes.value;
+                            Some((
+                                LitStr::new("class", classes.label.span()),
+                                Value::Dynamic(quote! {
+                                    ::std::convert::Into::<::yew::html::Classes>::into(#expr)
+                                }),
+                                None,
+                            ))
+                        }
+                    });
 
             fn apply_as(directive: Option<&PropDirective>) -> TokenStream {
                 match directive {
@@ -470,7 +473,7 @@ impl Peek<'_, ()> for DynamicName {
     fn peek(cursor: Cursor) -> Option<((), Cursor)> {
         let (punct, cursor) = cursor.punct()?;
         if punct.as_char() != '@' {
-            return None
+            return None;
         }
 
         // move cursor past block if there is one
@@ -577,10 +580,10 @@ impl PeekValue<TagKey> for HtmlElementOpen {
                 let (punct, _) = cursor.punct()?;
                 // ... unless it isn't followed by a '='. `<key></key>` is a valid element!
                 if punct.as_char() == '=' {
-                    return None
+                    return None;
                 }
             } else if !non_capitalized_ascii(&name.to_string()) {
-                return None
+                return None;
             }
         }
 
@@ -639,12 +642,12 @@ impl PeekValue<TagKey> for HtmlElementClose {
     fn peek(cursor: Cursor) -> Option<TagKey> {
         let (punct, cursor) = cursor.punct()?;
         if punct.as_char() != '<' {
-            return None
+            return None;
         }
 
         let (punct, cursor) = cursor.punct()?;
         if punct.as_char() != '/' {
-            return None
+            return None;
         }
 
         let (tag_key, cursor) = TagName::peek(cursor)?;

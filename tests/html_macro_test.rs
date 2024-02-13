@@ -25,19 +25,13 @@ fn dynamic_tags_catch_void_elements() {
 #[test]
 #[should_panic(expected = "a dynamic tag returned a tag name containing non ASCII characters: `❤`")]
 fn dynamic_tags_catch_non_ascii() {
-    let _ = html! {
-        <@{"❤"}/>
-    };
+    let _ = html! { <@{"❤"} /> };
 }
 
 /// test that compilation on html elements pass
 /// fixes: https://github.com/yewstack/yew/issues/2268
 #[test]
 fn html_nested_macro_on_html_element() {
-    let _node = html_nested! {
-        <div/>
-    };
-    let _node = html_nested! {
-        <input/>
-    };
+    let _node = html_nested! { <div /> };
+    let _node = html_nested! { <input /> };
 }
