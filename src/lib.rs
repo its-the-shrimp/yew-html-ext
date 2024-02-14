@@ -1,11 +1,111 @@
 #![cfg_attr(nightly_yew, feature(proc_macro_span))]
 
-//! This crate provides an extension for [Yew](https://yew.rs)'s
+//! This crate provides handy extensions to [Yew](https://yew.rs)'s
 //! [HTML macros](https://docs.rs/yew/latest/yew/macro.html.html).
-//! It provides [`html`] and [`html_nested`] macros that are fully backwards compatible with the
+//! It provides [`html!`] and [`html_nested!`] macros that are fully backwards-compatible with the
 //! original ones defined in Yew, meaning all one has to do to start using this crate is
-//! just change `yew::html` to `yew_html_ext::html` or change the way `html` & `html_nested` are
-//! imported
+//! just change the uses/imports of `yew::html{_nested}` to `yew_html_ext::html{_nested}`.
+//! # New syntax
+//! ## `for` loops
+//! The syntax is the same as of Rust's `for` loops, the body of the loop can contain 0 or more
+//! nodes.
+//! ```rust
+//! use yew::{Properties, function_component, html::Html};
+//! use yew_html_ext::html;
+//! 
+//! #[derive(PartialEq, Properties)]
+//! struct CountdownProps {
+//!     n: usize,
+//! }
+//!
+//! #[function_component]
+//! fn Countdown(props: &CountdownProps) -> Html {
+//!     html! {
+//!         <div>
+//!             for i in (0 .. props.n).rev() {
+//!                 <h2>{ i }</h2>
+//!                 <br />
+//!             }
+//!         </div>
+//!     }
+//! }
+//! ```
+//! However, `break`ing or `continue`ing the loop is forbidden.
+//! ```rust,compile_fail
+//! # use yew::{Properties, function_component, html::Html};
+//! # use yew_html_ext::html;
+//! #
+//! # #[derive(PartialEq, Properties)]
+//! # struct CountdownProps {
+//! #     n: usize,
+//! # }
+//! # 
+//! # #[function_component]
+//! # fn Countdown(props: &CountdownProps) -> Html {
+//! html! {
+//!     <div>
+//!         for i in (0 .. props.n).rev() {
+//!             if i % 2 == 0 {
+//!                 { continue } // nuh-uh
+//!             } else {
+//!                 <h2>{ i }</h2>
+//!             }
+//!             <br />
+//!         }
+//!     </div>
+//! }
+//! # }
+//! ```
+//! In a list of nodes all nodes must have unique keys or have no key, which is why using a
+//! constant to specify a key of a node in a loop is dangerous: if the loop iterates more than
+//! once, the generated list will have repeated keys; as a best-effort attempt to prevent such
+//! cases, the macro disallows specifying literals or constants as keys
+//! ```rust,compile_fail
+//! # use yew::{Properties, function_component, html::Html};
+//! # use yew_html_ext::html;
+//! #
+//! # #[derive(PartialEq, Properties)]
+//! # struct CountdownProps {
+//! #     n: usize,
+//! # }
+//! # 
+//! # #[function_component]
+//! # fn Countdown(props: &CountdownProps) -> Html {
+//! html! {
+//!     <div>
+//!         for i in (0 .. props.n).rev() {
+//!             <h2 key="number" /* nuh-uh */>{ i }</h2>
+//!             <br />
+//!         }
+//!     </div>
+//! }
+//! # }
+//! ```
+//! ## `match` nodes
+//! The syntax is the same as of Rust's `match` expressions; the body of a match arm must have
+//! exactly 1 node.
+//! ```rust
+//! use yew::{Properties, function_component, html::Html};
+//! use yew_html_ext::html;
+//! use std::cmp::Ordering;
+//! 
+//! #[derive(PartialEq, Properties)]
+//! struct ComparisonProps {
+//!     int1: usize,
+//!     int2: usize,
+//! }
+//!
+//! #[function_component]
+//! fn Comparison(props: &ComparisonProps) -> Html {
+//!     html! {
+//!         match props.int1.cmp(&props.int2) {
+//!             Ordering::Less => { '<' },
+//!             Ordering::Equal => { '=' },
+//!             Ordering::Greater => { '>' },
+//!         }
+//!     }
+//! }
+//! ```
 
 mod html_tree;
 mod props;
