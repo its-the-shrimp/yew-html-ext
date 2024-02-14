@@ -7,8 +7,9 @@ repository = "https://github.com/schvv31n/yew-html-ext"
 license = "MIT"
 keywords = ["web", "wasm", "frontend", "webassembly", "yew"]
 categories = ["gui", "web-programming", "wasm"]
-description = "`for`, `match` and more right in Yew HTML"
+description = "Handy syntactic extensions for Yew's HTML macros"
 rust-version = "1.67.0"
+readme = "README.md"
 
 [lib]
 proc-macro = true
