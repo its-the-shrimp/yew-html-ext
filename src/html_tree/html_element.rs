@@ -297,6 +297,7 @@ impl ToTokens for HtmlElement {
                         )
                     )
                 }
+
                 let node = match &*name {
                     "input" => {
                         quote! {
@@ -340,6 +341,7 @@ impl ToTokens for HtmlElement {
                         }
                     }
                 };
+
                 // the return value can be inlined without the braces when this is stable:
                 // https://github.com/rust-lang/rust/issues/15701
                 quote_spanned!{
