@@ -11,13 +11,13 @@ yew-html-ext = "0.1"
 ```
 2. Replace uses/imports of `yew::html{_nested}` with `yew_html_ext::html{_nested}`
 
-The provided macros facilitate a superset of the syntax of the HTML macros provided by Yew, meaning that any valid invocation of `yew::html` is a valid invocation of `yew_html_ext::html`
-More info about the provided syntax at https://docs.rs/yew-html-ext/latest/yew_html_ext/
+The provided macros facilitate an experimental ground for potential additions to Yew HTML proper,
+which is why the base features are untouched, only new ones are added.
 
 ## Format this new fancy HTML
 [`yew-fmt`](https://github.com/schvv31n/yew-fmt) has support for this extended syntax,
 which is however opt-in and is to be enabled by adding the following line to `rustfmt.toml`:
 ```toml
-yew.ext = true
+yew.html_flavor = "Ext"
 ```
 More on this [here](https://github.com/schvv31n/yew-fmt?tab=readme-ov-file#yewext)
