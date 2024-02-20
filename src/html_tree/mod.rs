@@ -14,6 +14,7 @@ mod html_element;
 mod html_for;
 mod html_if;
 mod html_iterable;
+mod html_let;
 mod html_list;
 mod html_match;
 mod html_node;
@@ -31,6 +32,7 @@ use tag::TagTokens;
 
 use self::html_block::BlockContent;
 use self::html_for::HtmlFor;
+use self::html_let::HtmlLet;
 use self::html_match::HtmlMatch;
 
 struct TokenIter<'cursor>(Cursor<'cursor>);
@@ -164,28 +166,35 @@ pub enum HtmlRoot {
 
 impl Parse for HtmlRoot {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let html_root = if HtmlIterable::peek(input.cursor()).is_some() {
-            if TokenIter(input.cursor()).any(|t| matches!(t, TokenTree::Ident(i) if i == "in")) {
-                Self::Tree(HtmlTree::For(input.parse()?))
-            } else {
-                Self::Iterable(input.parse()?)
-            }
-        } else if HtmlTree::peek_html_type(input).is_some() {
-            Self::Tree(input.parse()?)
-        } else {
-            Self::Node(input.parse()?)
-        };
-
-        if !input.is_empty() {
-            let stream: TokenStream = input.parse()?;
-            Err(syn::Error::new_spanned(
-                stream,
-                "only one root html element is allowed (hint: you can wrap multiple html elements \
-                 in a fragment `<></>`)",
-            ))
-        } else {
-            Ok(html_root)
+        /// Assumes that `cursor` is pointing at a `for` token
+        fn for_loop_like(cursor: Cursor<'_>) -> bool {
+            let Some((_, cursor)) = cursor.token_tree() else {
+                return false;
+            };
+            // The `take_while` call makes sure that e.g. `html!(for for i in 0 .. 10 {})` is
+            // classified correctly
+            TokenIter(cursor)
+                .take_while(|t| !matches!(t, TokenTree::Ident(i) if i == "for"))
+                .any(|t| matches!(t, TokenTree::Ident(i) if i == "in"))
         }
+
+        Ok(match HtmlTree::peek_html_type(input) {
+            Some(HtmlType::For) => {
+                if for_loop_like(input.cursor()) {
+                    Self::Tree(HtmlTree::For(input.parse()?))
+                } else {
+                    Self::Iterable(input.parse()?)
+                }
+            }
+            Some(HtmlType::Match) => Self::Tree(HtmlTree::Match(input.parse()?)),
+            Some(HtmlType::Block) => Self::Tree(HtmlTree::Block(input.parse()?)),
+            Some(HtmlType::Component) => Self::Tree(HtmlTree::Component(input.parse()?)),
+            Some(HtmlType::List) => Self::Tree(HtmlTree::List(input.parse()?)),
+            Some(HtmlType::Element) => Self::Tree(HtmlTree::Element(input.parse()?)),
+            Some(HtmlType::If) => Self::Tree(HtmlTree::If(input.parse()?)),
+            Some(HtmlType::Empty) => Self::Tree(HtmlTree::Empty),
+            None => Self::Node(input.parse()?),
+        })
     }
 }
 
@@ -238,33 +247,46 @@ impl ToNodeIterator for HtmlTree {
     }
 }
 
-pub struct HtmlChildrenTree(pub Vec<HtmlTree>);
+pub struct HtmlChildrenTree {
+    pub bindings: Vec<HtmlLet>,
+    pub children: Vec<HtmlTree>,
+}
 
 impl HtmlChildrenTree {
     pub fn new() -> Self {
-        Self(Vec::new())
+        Self {
+            children: vec![],
+            bindings: vec![],
+        }
     }
 
     pub fn parse_child(&mut self, input: ParseStream) -> syn::Result<()> {
-        self.0.push(input.parse()?);
+        if input.peek(Token![let]) {
+            if !self.children.is_empty() {
+                return Err(input.error("`let` bindings must come before any children"));
+            }
+            self.bindings.push(input.parse()?)
+        } else {
+            self.children.push(input.parse()?)
+        }
         Ok(())
     }
 
     pub fn is_empty(&self) -> bool {
-        self.0.is_empty()
+        self.children.is_empty()
     }
 
     // Check if each child represents a single node.
     // This is the case when no expressions are used.
     fn only_single_node_children(&self) -> bool {
-        self.0
+        self.children
             .iter()
             .map(ToNodeIterator::to_node_iterator_stream)
             .all(|s| s.is_none())
     }
 
     pub fn to_build_vec_token_stream(&self) -> TokenStream {
-        let Self(children) = self;
+        let Self { bindings, children } = self;
 
         if self.only_single_node_children() {
             // optimize for the common case where all children are single nodes (only using literal
@@ -272,8 +294,15 @@ impl HtmlChildrenTree {
             let children_into = children
                 .iter()
                 .map(|child| quote_spanned! {child.span()=> ::std::convert::Into::into(#child) });
-            return quote! {
-                ::std::vec![#(#children_into),*]
+            return if bindings.is_empty() {
+                quote! { ::std::vec![#(#children_into),*] }
+            } else {
+                quote! {
+                    {
+                        #(#bindings)*
+                        ::std::vec![#(#children_into),*]
+                    }
+                }
             };
         }
 
@@ -292,6 +321,7 @@ impl HtmlChildrenTree {
 
         quote! {
             {
+                #(#bindings;)*
                 let mut #vec_ident = ::std::vec::Vec::new();
                 #(#add_children_streams)*
                 #vec_ident
@@ -310,7 +340,9 @@ impl HtmlChildrenTree {
     }
 
     pub fn to_children_renderer_tokens(&self) -> Option<TokenStream> {
-        match self.0[..] {
+        let Self { bindings, children } = self;
+
+        let res = match children[..] {
             [] => None,
             [HtmlTree::Component(ref children)] => Some(quote! { #children }),
             [HtmlTree::Element(ref children)] => Some(quote! { #children }),
@@ -325,15 +357,27 @@ impl HtmlChildrenTree {
                 {
                     Some(quote! { #children })
                 } else {
-                    Some(quote! { ::yew::html::ChildrenRenderer::new(#self) })
+                    return Some(quote! { ::yew::html::ChildrenRenderer::new(#self) });
                 }
             }
-            _ => Some(quote! { ::yew::html::ChildrenRenderer::new(#self) }),
+            _ => return Some(quote! { ::yew::html::ChildrenRenderer::new(#self) }),
+        };
+        if bindings.is_empty() {
+            res
+        } else {
+            Some(quote! {
+                {
+                    #(#bindings;)*
+                    #res
+                }
+            })
         }
     }
 
     pub fn to_vnode_tokens(&self) -> TokenStream {
-        match self.0[..] {
+        let Self { bindings, children } = self;
+
+        let res = match children[..] {
             [] => quote! {::std::default::Default::default() },
             [HtmlTree::Component(ref children)] => {
                 quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) }
@@ -352,23 +396,37 @@ impl HtmlChildrenTree {
                 {
                     quote! { ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(#children) }
                 } else {
-                    quote! {
+                    return quote! {
                         ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(
                             ::yew::html::ChildrenRenderer::new(#self)
                         )
-                    }
+                    };
                 }
             }
-            _ => quote! {
-                ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(
-                    ::yew::html::ChildrenRenderer::new(#self)
-                )
-            },
+            _ => {
+                return quote! {
+                    ::yew::html::IntoPropValue::<::yew::virtual_dom::VNode>::into_prop_value(
+                        ::yew::html::ChildrenRenderer::new(#self)
+                    )
+                }
+            }
+        };
+
+        if bindings.is_empty() {
+            res
+        } else {
+            quote! {
+                {
+                    #(#bindings;)*
+                    #res
+                }
+            }
         }
     }
 
     pub fn size_hint(&self) -> Option<usize> {
-        self.only_single_node_children().then_some(self.0.len())
+        self.only_single_node_children()
+            .then_some(self.children.len())
     }
 }
 
@@ -410,5 +468,23 @@ impl ToTokens for HtmlRootBraced {
                 )
             }
         });
+    }
+}
+
+pub struct HtmlMacroInput<T: Parse>(pub T);
+
+impl<T: Parse> Parse for HtmlMacroInput<T> {
+    fn parse(input: ParseStream) -> syn::Result<Self> {
+        let res = input.parse()?;
+        if !input.is_empty() {
+            let stream: TokenStream = input.parse()?;
+            Err(syn::Error::new_spanned(
+                stream,
+                "only one root html element is allowed (hint: you can wrap multiple html elements \
+                 in a fragment `<></>`)",
+            ))
+        } else {
+            Ok(Self(res))
+        }
     }
 }

@@ -92,6 +92,7 @@ struct HtmlListOpen {
     tag: TagTokens,
     props: HtmlListProps,
 }
+
 impl HtmlListOpen {
     fn to_spanned(&self) -> impl ToTokens {
         self.tag.to_spanned()

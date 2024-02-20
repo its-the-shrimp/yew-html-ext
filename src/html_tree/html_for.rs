@@ -1,14 +1,13 @@
-use proc_macro2::{Ident, TokenStream};
-use quote::{quote, ToTokens};
-use syn::buffer::Cursor;
-use syn::parse::{Parse, ParseStream};
-use syn::spanned::Spanned;
-use syn::token::{For, In};
-use syn::{braced, Expr, Pat};
-
 use super::{HtmlChildrenTree, ToNodeIterator};
 use crate::html_tree::HtmlTree;
 use crate::PeekValue;
+use proc_macro2::{Ident, TokenStream};
+use quote::{quote, quote_spanned, ToTokens};
+use syn::buffer::Cursor;
+use syn::parse::{Parse, ParseStream};
+use syn::spanned::Spanned;
+use syn::token::Brace;
+use syn::{braced, Expr, Pat, Token};
 
 /// Determines if an expression is guaranteed to always return the same value anywhere.
 fn is_contextless_pure(expr: &Expr) -> bool {
@@ -22,6 +21,7 @@ fn is_contextless_pure(expr: &Expr) -> bool {
 pub struct HtmlFor {
     pat: Pat,
     iter: Expr,
+    brace: Brace,
     body: HtmlChildrenTree,
 }
 
@@ -34,17 +34,17 @@ impl PeekValue<()> for HtmlFor {
 
 impl Parse for HtmlFor {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        For::parse(input)?;
+        <Token![for]>::parse(input)?;
         let pat = Pat::parse_single(input)?;
-        In::parse(input)?;
+        <Token![in]>::parse(input)?;
         let iter = Expr::parse_without_eager_brace(input)?;
 
         let body_stream;
-        braced!(body_stream in input);
+        let brace = braced!(body_stream in input);
 
         let body = HtmlChildrenTree::parse_delimited(&body_stream)?;
         // TODO: reduce nesting by using if-let guards / let-else statements once MSRV is raised
-        for child in body.0.iter() {
+        for child in body.children.iter() {
             if let HtmlTree::Element(element) = child {
                 if let Some(key) = &element.props.special.key {
                     if is_contextless_pure(&key.value) {
@@ -57,19 +57,29 @@ impl Parse for HtmlFor {
                 }
             }
         }
-        Ok(Self { pat, iter, body })
+        Ok(Self {
+            pat,
+            iter,
+            brace,
+            body,
+        })
     }
 }
 
 impl ToTokens for HtmlFor {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self { pat, iter, body } = self;
+        let Self {
+            pat,
+            iter,
+            brace,
+            body,
+        } = self;
         let acc = Ident::new("__yew_v", iter.span());
 
         let alloc_opt = body
             .size_hint()
             .filter(|&size| size > 1) // explicitly reserving space for 1 more element is redundant
-            .map(|size| quote!( #acc.reserve(#size) ));
+            .map(|size| quote!( #acc.reserve(#size); ));
 
         // optimisations unaviliable :(
         /*let vlist_gen = match body.fully_keyed() {
@@ -91,25 +101,22 @@ impl ToTokens for HtmlFor {
                 ::yew::virtual_dom::VList::with_children(#acc, ::std::option::Option::None)
             },
         };*/
-        let vlist_gen = quote! {
-            ::yew::virtual_dom::VList::with_children(#acc, ::std::option::Option::None)
-        };
 
-        let body = body.0.iter().map(|child| {
+        let body = body.children.iter().map(|child| {
             if let Some(child) = child.to_node_iterator_stream() {
-                quote!( #acc.extend(#child) )
+                quote!( ::std::iter::Extend::extend(&mut #acc, #child) )
             } else {
                 quote!( #acc.push(::std::convert::Into::into(#child)) )
             }
         });
 
-        tokens.extend(quote!({
+        tokens.extend(quote_spanned!(brace.span.span()=> {
             let mut #acc = ::std::vec::Vec::<::yew::virtual_dom::VNode>::new();
             ::std::iter::Iterator::for_each(
                 ::std::iter::IntoIterator::into_iter(#iter),
-                |#pat| { #alloc_opt; #(#body);* }
+                |#pat| { #alloc_opt #(#body);* }
             );
-            #vlist_gen
+            ::yew::virtual_dom::VList::with_children(#acc, ::std::option::Option::None)
         }))
     }
 }

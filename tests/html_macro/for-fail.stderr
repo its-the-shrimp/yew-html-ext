@@ -32,11 +32,11 @@ error[E0267]: `break` inside of a closure
   --> tests/html_macro/for-fail.rs:15:16
    |
 14 |       _ = html!{for _ in 0 .. 10 {
-   |  _________-
+   |  ________________________________-
 15 | |         <span>{break}</span>
    | |                ^^^^^ cannot `break` inside of a closure
 16 | |     }};
-   | |______- enclosing closure
+   | |_____- enclosing closure
 
 error[E0308]: mismatched types
   --> tests/html_macro/for-fail.rs:10:19

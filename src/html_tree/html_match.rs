@@ -1,45 +1,58 @@
-use super::HtmlTree;
-use crate::PeekValue;
+use super::HtmlRootVNode;
+use crate::{OptionExt, PeekValue};
 use proc_macro2::TokenStream;
-use quote::{quote, ToTokens};
+use quote::{quote, quote_spanned, ToTokens};
 use syn::{
     braced,
     buffer::Cursor,
     parse::{Parse, ParseStream},
+    spanned::Spanned,
+    token::Brace,
     Expr, Pat, Token,
 };
 
 pub struct HtmlMatchArm {
-    pat: Box<Pat>,
-    guard: Option<Box<Expr>>,
-    body: Box<HtmlTree>,
+    pat: Pat,
+    guard: Option<(Token![if], Expr)>,
+    fat_arrow_token: Token![=>],
+    body: HtmlRootVNode,
 }
 
 impl Parse for HtmlMatchArm {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let pat = Box::new(Pat::parse_multi_with_leading_vert(input)?);
+        let pat = Pat::parse_multi_with_leading_vert(input)?;
         let guard = match <Token![if]>::parse(input) {
-            Ok(_) => Some(input.parse()?),
+            Ok(if_token) => Some((if_token, input.parse()?)),
             Err(_) => None,
         };
-        <Token![=>]>::parse(input)?;
+        let fat_arrow_token = input.parse()?;
         let body = input.parse()?;
-        Ok(Self { pat, guard, body })
+        Ok(Self {
+            pat,
+            guard,
+            fat_arrow_token,
+            body,
+        })
     }
 }
 
 impl ToTokens for HtmlMatchArm {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self { pat, guard, body } = self;
-        let guard = guard.as_ref().into_iter();
-        tokens.extend(quote! {
-            #pat #(if #guard)* => ::std::convert::Into::<::yew::virtual_dom::VNode>::into(#body),
-        })
+        let Self {
+            pat,
+            guard,
+            fat_arrow_token,
+            body,
+        } = self;
+        let (if_token, guard) = guard.unzip_ref();
+        tokens.extend(quote! { #pat #if_token #guard #fat_arrow_token #body })
     }
 }
 
 pub struct HtmlMatch {
-    expr: Box<Expr>,
+    match_token: Token![match],
+    expr: Expr,
+    brace: Brace,
     arms: Vec<HtmlMatchArm>,
 }
 
@@ -54,24 +67,34 @@ impl PeekValue<()> for HtmlMatch {
 
 impl Parse for HtmlMatch {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        <Token![match]>::parse(input)?;
-        let expr = Box::new(Expr::parse_without_eager_brace(input)?);
+        let match_token = input.parse()?;
+        let expr = Expr::parse_without_eager_brace(input)?;
         let body;
-        braced!(body in input);
+        let brace = braced!(body in input);
         let arms = body
             .parse_terminated(HtmlMatchArm::parse, Token![,])?
             .into_iter()
             .collect();
-        Ok(Self { expr, arms })
+        Ok(Self {
+            match_token,
+            expr,
+            brace,
+            arms,
+        })
     }
 }
 
 impl ToTokens for HtmlMatch {
     fn to_tokens(&self, tokens: &mut TokenStream) {
-        let Self { expr, arms } = self;
-        tokens.extend(quote! {
-            match #expr {
-                #(#arms)*
+        let Self {
+            match_token,
+            expr,
+            brace,
+            arms,
+        } = self;
+        tokens.extend(quote_spanned! {brace.span.span()=>
+            #match_token #expr {
+                #(#arms),*
             }
         })
     }

@@ -12,7 +12,7 @@
 //! ```rust
 //! use yew::{Properties, function_component, html::Html};
 //! use yew_html_ext::html;
-//! 
+//!
 //! #[derive(PartialEq, Properties)]
 //! struct CountdownProps {
 //!     n: usize,
@@ -39,7 +39,7 @@
 //! # struct CountdownProps {
 //! #     n: usize,
 //! # }
-//! # 
+//! #
 //! # #[function_component]
 //! # fn Countdown(props: &CountdownProps) -> Html {
 //! html! {
@@ -68,7 +68,7 @@
 //! # struct CountdownProps {
 //! #     n: usize,
 //! # }
-//! # 
+//! #
 //! # #[function_component]
 //! # fn Countdown(props: &CountdownProps) -> Html {
 //! html! {
@@ -88,7 +88,7 @@
 //! use yew::{Properties, function_component, html::Html};
 //! use yew_html_ext::html;
 //! use std::cmp::Ordering;
-//! 
+//!
 //! #[derive(PartialEq, Properties)]
 //! struct ComparisonProps {
 //!     int1: usize,
@@ -111,11 +111,25 @@ mod html_tree;
 mod props;
 mod stringify;
 
-use html_tree::{HtmlRoot, HtmlRootVNode};
+use html_tree::{HtmlMacroInput, HtmlRoot, HtmlRootVNode};
 use proc_macro::TokenStream;
 use quote::ToTokens;
 use syn::buffer::Cursor;
 use syn::parse_macro_input;
+
+trait OptionExt<T, U> {
+    fn unzip_ref(&self) -> (Option<&T>, Option<&U>);
+}
+
+impl<T, U> OptionExt<T, U> for Option<(T, U)> {
+    fn unzip_ref(&self) -> (Option<&T>, Option<&U>) {
+        if let Some((x, y)) = self {
+            (Some(x), Some(y))
+        } else {
+            (None, None)
+        }
+    }
+}
 
 trait Peek<'a, T> {
     fn peek(cursor: Cursor<'a>) -> Option<(T, Cursor<'a>)>;
@@ -156,13 +170,13 @@ fn is_ide_completion() -> bool {
 #[proc_macro_error::proc_macro_error]
 #[proc_macro]
 pub fn html_nested(input: TokenStream) -> TokenStream {
-    let root = parse_macro_input!(input as HtmlRoot);
-    TokenStream::from(root.into_token_stream())
+    let root = parse_macro_input!(input as HtmlMacroInput<HtmlRoot>);
+    TokenStream::from(root.0.into_token_stream())
 }
 
 #[proc_macro_error::proc_macro_error]
 #[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
-    let root = parse_macro_input!(input as HtmlRootVNode);
-    TokenStream::from(root.into_token_stream())
+    let root = parse_macro_input!(input as HtmlMacroInput<HtmlRootVNode>);
+    TokenStream::from(root.0.into_token_stream())
 }
