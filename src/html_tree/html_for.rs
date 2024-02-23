@@ -102,11 +102,12 @@ impl ToTokens for HtmlFor {
             },
         };*/
 
+        let bindings = &body.bindings;
         let body = body.children.iter().map(|child| {
             if let Some(child) = child.to_node_iterator_stream() {
-                quote!( ::std::iter::Extend::extend(&mut #acc, #child) )
+                quote!( ::std::iter::Extend::extend(&mut #acc, #child); )
             } else {
-                quote!( #acc.push(::std::convert::Into::into(#child)) )
+                quote!( #acc.push(::std::convert::Into::into(#child)); )
             }
         });
 
@@ -114,7 +115,11 @@ impl ToTokens for HtmlFor {
             let mut #acc = ::std::vec::Vec::<::yew::virtual_dom::VNode>::new();
             ::std::iter::Iterator::for_each(
                 ::std::iter::IntoIterator::into_iter(#iter),
-                |#pat| { #alloc_opt #(#body);* }
+                |#pat| {
+                    #alloc_opt
+                    #(#bindings)*
+                    #(#body)*
+                }
             );
             ::yew::virtual_dom::VList::with_children(#acc, ::std::option::Option::None)
         }))

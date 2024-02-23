@@ -106,6 +106,37 @@
 //!     }
 //! }
 //! ```
+//! ## `let` bindings
+//! Normal Rust's `let` bindings, including `let-else` structures, are supported with the same
+//! syntax.
+//! ```rust
+//! use yew::{Properties, function_component, html::Html};
+//! use yew_html_ext::html;
+//! use std::{fs::read_dir, path::PathBuf};
+//!
+//! #[derive(PartialEq, Properties)]
+//! struct DirProps {
+//!     path: PathBuf,
+//! }
+//!
+//! #[function_component]
+//! fn Dir(props: &DirProps) -> Html {
+//!     html! {
+//!         <ul>
+//!             let Ok(iter) = read_dir(&props.path) else {
+//!                 return html!("oops :P")
+//!             };
+//!             for entry in iter {
+//!                 let path = match entry {
+//!                     Ok(entry) => format!("{:?}", entry.path()),
+//!                     Err(err) => format!("{err:?}"),
+//!                 };
+//!                 <li>{ path }</li>
+//!             }
+//!         </ul>
+//!     }
+//! }
+//! ```
 
 mod html_tree;
 mod props;
