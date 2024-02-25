@@ -20,4 +20,4 @@ which is however opt-in and is to be enabled by adding the following line to `ru
 ```toml
 yew.html_flavor = "Ext"
 ```
-More on this [here](https://github.com/schvv31n/yew-fmt?tab=readme-ov-file#yewext)
+More on this [here](https://github.com/schvv31n/yew-fmt?tab=readme-ov-file#yewhtml_flavor)
