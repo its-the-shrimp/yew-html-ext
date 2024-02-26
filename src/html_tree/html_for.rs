@@ -113,14 +113,11 @@ impl ToTokens for HtmlFor {
 
         tokens.extend(quote_spanned!(brace.span.span()=> {
             let mut #acc = ::std::vec::Vec::<::yew::virtual_dom::VNode>::new();
-            ::std::iter::Iterator::for_each(
-                ::std::iter::IntoIterator::into_iter(#iter),
-                |#pat| {
-                    #alloc_opt
-                    #(#bindings)*
-                    #(#body)*
-                }
-            );
+            for #pat in #iter {
+                #alloc_opt
+                #(#bindings)*
+                #(#body)*
+            }
             ::yew::virtual_dom::VList::with_children(#acc, ::std::option::Option::None)
         }))
     }

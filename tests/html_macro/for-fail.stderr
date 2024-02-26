@@ -16,36 +16,25 @@ error: unexpected end of input, expected curly braces
 
 error: duplicate key for a node in a `for`-loop
        this will create elements with duplicate keys if the loop iterates more than once
-  --> tests/html_macro/for-fail.rs:19:18
+  --> tests/html_macro/for-fail.rs:15:18
    |
-19 |         <div key="duplicate" />
+15 |         <div key="duplicate" />
    |                  ^^^^^^^^^^^
 
 error: duplicate key for a node in a `for`-loop
        this will create elements with duplicate keys if the loop iterates more than once
-  --> tests/html_macro/for-fail.rs:23:19
+  --> tests/html_macro/for-fail.rs:19:19
    |
-23 |         <div key={smth::KEY} />
+19 |         <div key={smth::KEY} />
    |                   ^^^^
-
-error[E0267]: `break` inside of a closure
-  --> tests/html_macro/for-fail.rs:15:16
-   |
-14 |       _ = html!{for _ in 0 .. 10 {
-   |  ________________________________-
-15 | |         <span>{break}</span>
-   | |                ^^^^^ cannot `break` inside of a closure
-16 | |     }};
-   | |_____- enclosing closure
 
 error[E0308]: mismatched types
   --> tests/html_macro/for-fail.rs:10:19
    |
 10 |     _ = html!{for (x, y) in 0 .. 10 {
-   |                   ^^^^^^
+   |                   ^^^^^^    ------- this is an iterator with items of type `{integer}`
    |                   |
    |                   expected integer, found tuple
-   |                   expected due to this
    |
    = note: expected type `{integer}`
              found tuple `(_, _)`

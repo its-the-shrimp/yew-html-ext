@@ -30,32 +30,6 @@
 //!     }
 //! }
 //! ```
-//! However, `break`ing or `continue`ing the loop is forbidden.
-//! ```rust,compile_fail
-//! # use yew::{Properties, function_component, html::Html};
-//! # use yew_html_ext::html;
-//! #
-//! # #[derive(PartialEq, Properties)]
-//! # struct CountdownProps {
-//! #     n: usize,
-//! # }
-//! #
-//! # #[function_component]
-//! # fn Countdown(props: &CountdownProps) -> Html {
-//! html! {
-//!     <div>
-//!         for i in (0 .. props.n).rev() {
-//!             if i % 2 == 0 {
-//!                 { continue } // nuh-uh
-//!             } else {
-//!                 <h2>{ i }</h2>
-//!             }
-//!             <br />
-//!         }
-//!     </div>
-//! }
-//! # }
-//! ```
 //! In a list of nodes all nodes must have unique keys or have no key, which is why using a
 //! constant to specify a key of a node in a loop is dangerous: if the loop iterates more than
 //! once, the generated list will have repeated keys; as a best-effort attempt to prevent such
@@ -127,11 +101,10 @@
 //!                 return html!("oops :P")
 //!             };
 //!             for entry in iter {
-//!                 let path = match entry {
-//!                     Ok(entry) => format!("{:?}", entry.path()),
-//!                     Err(err) => format!("{err:?}"),
+//!                 let Ok(entry) = entry else {
+//!                     return html!("oops :p")
 //!                 };
-//!                 <li>{ path }</li>
+//!                 <li>{ format!("{:?}", entry.path()) }</li>
 //!             }
 //!         </ul>
 //!     }
