@@ -1,4 +1,6 @@
 # yew-html-ext
+![Crates.io Version](https://img.shields.io/crates/v/yew-html-ext)
+![docs.rs](https://img.shields.io/docsrs/yew-html-ext)
 ## Write HTML in Rust more concisely
 `yew-html-ext` provides a drop-in replacement for Yew's [`html!`](https://docs.rs/yew/latest/yew/macro.html.html)
 and [`html_nested!`](https://docs.rs/yew/latest/yew/macro.html_nested.html) macros with 
