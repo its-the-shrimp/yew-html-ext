@@ -13,6 +13,7 @@ yew-html-ext = "0.1"
 
 The provided macros facilitate an experimental ground for potential additions to Yew HTML proper,
 which is why the base features are untouched, only new ones are added.
+The specific syntax provided by the library is explained in [the docs](https://docs.rs/yew-html-ext/latest/yew_html_ext)
 
 ## Format this new fancy HTML
 [`yew-fmt`](https://github.com/schvv31n/yew-fmt) has support for this extended syntax,
