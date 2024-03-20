@@ -145,7 +145,7 @@ impl ToTokens for HtmlTree {
     fn to_tokens(&self, tokens: &mut TokenStream) {
         match self {
             HtmlTree::Empty => tokens.extend(quote! {
-                ::yew::virtual_dom::VNode::VList(::yew::virtual_dom::VList::new())
+                ::yew::virtual_dom::VNode::VList(::std::rc::Rc::new(::yew::virtual_dom::VList::new()))
             }),
             HtmlTree::Component(comp) => comp.to_tokens(tokens),
             HtmlTree::Element(tag) => tag.to_tokens(tokens),
@@ -464,7 +464,9 @@ impl ToTokens for HtmlRootBraced {
         tokens.extend(quote_spanned! {brace.span.span()=>
             {
                 ::yew::virtual_dom::VNode::VList(
+                    ::std::rc::Rc::new(
                     ::yew::virtual_dom::VList::with_children(#children, ::std::option::Option::None)
+                    )
                 )
             }
         });

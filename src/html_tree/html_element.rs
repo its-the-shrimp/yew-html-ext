@@ -220,9 +220,9 @@ impl ToTokens for HtmlElement {
             fn apply_as(directive: Option<&PropDirective>) -> TokenStream {
                 match directive {
                     Some(PropDirective::ApplyAsProperty(token)) => {
-                        quote_spanned!(token.span()=> ::yew::virtual_dom::ApplyAttributeAs::Property)
+                        quote_spanned!(token.span()=> ::yew::virtual_dom::AttributeOrProperty::Property)
                     }
-                    None => quote!(::yew::virtual_dom::ApplyAttributeAs::Attribute),
+                    None => quote!(::yew::virtual_dom::AttributeOrProperty::Attribute),
                 }
             }
 
@@ -233,11 +233,13 @@ impl ToTokens for HtmlElement {
                 let mut kv = Vec::with_capacity(src.len());
                 for (k, v, directive) in src.iter() {
                     let v = match v {
-                        Value::Static(v) => quote! { #v },
+                        Value::Static(v) => quote! {
+                            ::yew::virtual_dom::AttributeOrProperty::Static(#v)
+                        },
                         Value::Dynamic(_) => return None,
                     };
-                    let apply_as = apply_as(directive.as_ref());
-                    kv.push(quote! { ( #k, #v, #apply_as ) });
+
+                    kv.push(quote! { ( #k, #v ) });
                 }
 
                 Some(quote! { ::yew::virtual_dom::Attributes::Static(&[#(#kv),*]) })
@@ -252,7 +254,7 @@ impl ToTokens for HtmlElement {
                 let values = attrs.iter().map(|(_, v, directive)| {
                     let apply_as = apply_as(directive.as_ref());
                     let value = wrap_attr_value(v);
-                    quote! { ::std::option::Option::map(#value, |it| (it, #apply_as)) }
+                    quote! { ::std::option::Option::map(#value, #apply_as) }
                 });
                 quote! {
                     ::yew::virtual_dom::Attributes::Dynamic{
@@ -330,7 +332,8 @@ impl ToTokens for HtmlElement {
                         quote! {
                             ::std::convert::Into::<::yew::virtual_dom::VNode>::into(
                                 ::yew::virtual_dom::VTag::__new_other(
-                                    ::std::borrow::Cow::<'static, ::std::primitive::str>::Borrowed(#name),
+                                    // ::std::borrow::Cow::<'static, ::std::primitive::str>::Borrowed(#name),
+                                    ::implicit_clone::unsync::IString::Static(#name),
                                     #node_ref,
                                     #key,
                                     #attributes,
@@ -383,9 +386,11 @@ impl ToTokens for HtmlElement {
                 // this way we get a nice error message (with the correct span) when the expression
                 // doesn't return a valid value
                 quote_spanned! {expr.span()=> {
-                    let mut #vtag_name = ::std::convert::Into::<
-                        ::std::borrow::Cow::<'static, ::std::primitive::str>
-                    >::into(#expr);
+                    // let mut #vtag_name = ::std::convert::Into::<
+                    //     ::std::borrow::Cow::<'static, ::std::primitive::str>
+                    // >::into(#expr);
+
+                    let mut #vtag_name = ::implicit_clone::unsync::IString::Static(#expr);
                     ::std::debug_assert!(
                         #vtag_name.is_ascii(),
                         "a dynamic tag returned a tag name containing non ASCII characters: `{}`",
