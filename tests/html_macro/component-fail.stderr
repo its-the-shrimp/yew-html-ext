@@ -678,16 +678,7 @@ error[E0277]: the trait bound `(): IntoPropValue<String>` is not satisfied
    |                          |
    |                          required by a bound introduced by this call
    |
-   = help: the following other types implement trait `IntoPropValue<T>`:
-             <&'static [(K, V)] as IntoPropValue<implicit_clone::unsync::map::IMap<K, V>>>
-             <&'static [T] as IntoPropValue<implicit_clone::unsync::array::IArray<T>>>
-             <&'static str as IntoPropValue<Classes>>
-             <&'static str as IntoPropValue<Option<String>>>
-             <&'static str as IntoPropValue<Option<implicit_clone::unsync::string::IString>>>
-             <&'static str as IntoPropValue<String>>
-             <&'static str as IntoPropValue<implicit_clone::unsync::string::IString>>
-             <&T as IntoPropValue<Option<T>>>
-           and $N others
+   = help: the trait `IntoPropValue<VNode>` is implemented for `()`
 note: required by a bound in `ChildPropertiesBuilder::string`
   --> tests/html_macro/component-fail.rs:3:17
    |
@@ -779,7 +770,7 @@ error[E0277]: the trait bound `u32: IntoPropValue<i32>` is not satisfied
    |                    |
    |                    required by a bound introduced by this call
    |
-   = help: the trait `IntoPropValue<ChildrenRenderer<VNode>>` is implemented for `u32`
+   = help: the trait `IntoPropValue<VNode>` is implemented for `u32`
 note: required by a bound in `ChildPropertiesBuilder::int`
   --> tests/html_macro/component-fail.rs:3:17
    |
@@ -813,9 +804,9 @@ note: required for `CheckChildPropertiesAll<AssertAllProps>` to implement `HasAl
    |                 ^^^^^^^^^^^^^^^^^
    = note: required for `AssertAllProps` to implement `AllPropsFor<ChildPropertiesBuilder, (_,)>`
 note: required by a bound in `html::component::properties::__macro::PreBuild::<Token, B>::build`
-  --> $CARGO/yew-0.21.0/src/html/component/properties.rs
+  --> /Users/tim_evilov/.cargo/git/checkouts/yew-7424ad4d701b481c/e9739fc/packages/yew/src/html/component/properties.rs:76:20
    |
-   |             Token: AllPropsFor<B, How>,
+76 |             Token: AllPropsFor<B, How>,
    |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `html::component::properties::__macro::PreBuild::<Token, B>::build`
    = note: this error originates in the macro `html` which comes from the expansion of the derive macro `::yew::Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
@@ -871,9 +862,9 @@ note: required for `CheckChildContainerPropertiesAll<AssertAllProps>` to impleme
     |                 ^^^^^^^^^^^^^^^^^
     = note: required for `AssertAllProps` to implement `AllPropsFor<ChildContainerPropertiesBuilder, (_,)>`
 note: required by a bound in `html::component::properties::__macro::PreBuild::<Token, B>::build`
-   --> $CARGO/yew-0.21.0/src/html/component/properties.rs
+   --> /Users/tim_evilov/.cargo/git/checkouts/yew-7424ad4d701b481c/e9739fc/packages/yew/src/html/component/properties.rs:76:20
     |
-    |             Token: AllPropsFor<B, How>,
+76  |             Token: AllPropsFor<B, How>,
     |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `html::component::properties::__macro::PreBuild::<Token, B>::build`
     = note: this error originates in the macro `html` which comes from the expansion of the derive macro `::yew::Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
@@ -900,9 +891,9 @@ note: required for `CheckChildContainerPropertiesAll<AssertAllProps>` to impleme
     |                 ^^^^^^^^^^^^^^^^^
     = note: required for `AssertAllProps` to implement `AllPropsFor<ChildContainerPropertiesBuilder, (_,)>`
 note: required by a bound in `html::component::properties::__macro::PreBuild::<Token, B>::build`
-   --> $CARGO/yew-0.21.0/src/html/component/properties.rs
+   --> /Users/tim_evilov/.cargo/git/checkouts/yew-7424ad4d701b481c/e9739fc/packages/yew/src/html/component/properties.rs:76:20
     |
-    |             Token: AllPropsFor<B, How>,
+76  |             Token: AllPropsFor<B, How>,
     |                    ^^^^^^^^^^^^^^^^^^^ required by this bound in `html::component::properties::__macro::PreBuild::<Token, B>::build`
     = note: this error originates in the macro `html` which comes from the expansion of the derive macro `::yew::Properties` (in Nightly builds, run with -Z macro-backtrace for more info)
 
@@ -914,7 +905,9 @@ error[E0277]: the trait bound `yew::virtual_dom::VText: IntoPropValue<ChildrenRe
     |              |
     |              required by a bound introduced by this call
     |
-    = help: the trait `IntoPropValue<ChildrenRenderer<VNode>>` is implemented for `yew::virtual_dom::VText`
+    = help: the following other types implement trait `IntoPropValue<T>`:
+              <yew::virtual_dom::VText as IntoPropValue<ChildrenRenderer<VNode>>>
+              <yew::virtual_dom::VText as IntoPropValue<VNode>>
 note: required by a bound in `ChildContainerPropertiesBuilder::children`
    --> tests/html_macro/component-fail.rs:23:17
     |

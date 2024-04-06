@@ -1,6 +1,4 @@
-use std::convert::TryFrom;
 use std::ops::{Deref, DerefMut};
-
 use proc_macro2::{Spacing, Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned};
 use syn::parse::{Parse, ParseBuffer, ParseStream};

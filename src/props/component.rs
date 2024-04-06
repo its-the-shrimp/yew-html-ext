@@ -1,5 +1,3 @@
-use std::convert::TryFrom;
-
 use proc_macro2::{Ident, Span, TokenStream};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::parse::{Parse, ParseStream};
