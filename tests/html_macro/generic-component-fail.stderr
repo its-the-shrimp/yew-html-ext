@@ -36,13 +36,11 @@ error[E0412]: cannot find type `Context` in this scope
 14 |     fn create(_ctx: &Context<Self>) -> Self {
    |                      ^^^^^^^ not found in this scope
    |
-help: consider importing one of these items
+help: consider importing one of these structs
    |
-1  | use core::task::Context;
+1  + use std::task::Context;
    |
-1  | use std::task::Context;
-   |
-1  | use yew::Context;
+1  + use yew::Context;
    |
 
 error[E0412]: cannot find type `Context` in this scope
@@ -51,13 +49,11 @@ error[E0412]: cannot find type `Context` in this scope
 17 |     fn view(&self, _ctx: &Context<Self>) -> Html {
    |                           ^^^^^^^ not found in this scope
    |
-help: consider importing one of these items
+help: consider importing one of these structs
    |
-1  | use core::task::Context;
+1  + use std::task::Context;
    |
-1  | use std::task::Context;
-   |
-1  | use yew::Context;
+1  + use yew::Context;
    |
 
 error[E0412]: cannot find type `Html` in this scope
@@ -68,7 +64,7 @@ error[E0412]: cannot find type `Html` in this scope
    |
 help: consider importing this type alias
    |
-1  | use yew::Html;
+1  + use yew::Html;
    |
 
 error[E0412]: cannot find type `Context` in this scope
@@ -77,13 +73,11 @@ error[E0412]: cannot find type `Context` in this scope
 34 |     fn create(_ctx: &Context<Self>) -> Self {
    |                      ^^^^^^^ not found in this scope
    |
-help: consider importing one of these items
+help: consider importing one of these structs
    |
-1  | use core::task::Context;
+1  + use std::task::Context;
    |
-1  | use std::task::Context;
-   |
-1  | use yew::Context;
+1  + use yew::Context;
    |
 
 error[E0412]: cannot find type `Context` in this scope
@@ -92,13 +86,11 @@ error[E0412]: cannot find type `Context` in this scope
 37 |     fn view(&self, _ctx: &Context<Self>) -> Html {
    |                           ^^^^^^^ not found in this scope
    |
-help: consider importing one of these items
+help: consider importing one of these structs
    |
-1  | use core::task::Context;
+1  + use std::task::Context;
    |
-1  | use std::task::Context;
-   |
-1  | use yew::Context;
+1  + use yew::Context;
    |
 
 error[E0412]: cannot find type `Html` in this scope
@@ -109,5 +101,5 @@ error[E0412]: cannot find type `Html` in this scope
    |
 help: consider importing this type alias
    |
-1  | use yew::Html;
+1  + use yew::Html;
    |

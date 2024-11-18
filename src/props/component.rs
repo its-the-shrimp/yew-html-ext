@@ -62,8 +62,10 @@ impl ComponentProps {
         let check_props: TokenStream = self
             .props
             .iter()
-            .map(|Prop { label, .. }| {
+            .map(|Prop { cfg, label, .. }| {
+                let cfg = cfg.iter();
                 quote_spanned! {Span::call_site().located_at(label.span())=>
+                    #(#[cfg(#cfg)])*
                     let _ = &#props_ident.#label;
                 }
             })
@@ -99,8 +101,10 @@ impl ComponentProps {
                     let mut #builder_ident = <#props_ty as ::yew::html::Properties>::builder();
                     let #token_ident = ::yew::html::AssertAllProps;
                 };
-                let set_props = self.props.iter().map(|Prop { label, value, .. }| {
+                let set_props = self.props.iter().map(|Prop { cfg, label, value, .. }| {
+                    let cfg = cfg.iter();
                     quote_spanned! {value.span()=>
+                        #(#[cfg(#cfg)])*
                         let #token_ident = #builder_ident.#label(#token_ident, #value);
                     }
                 });
@@ -124,8 +128,10 @@ impl ComponentProps {
             // all values are initialized
             Some(expr) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
-                let set_props = self.props.iter().map(|Prop { label, value, .. }| {
+                let set_props = self.props.iter().map(|Prop { cfg, label, value, .. }| {
+                    let cfg = cfg.iter();
                     quote_spanned! {value.span().resolved_at(Span::call_site())=>
+                        #(#[cfg(#cfg)])*
                         #ident.#label = ::yew::html::IntoPropValue::into_prop_value(#value);
                     }
                 });

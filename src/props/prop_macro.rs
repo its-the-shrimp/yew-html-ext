@@ -65,6 +65,7 @@ impl From<PropValue> for Prop {
             label,
             value,
             directive: None,
+            cfg: None,
         }
     }
 }
