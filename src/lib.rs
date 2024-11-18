@@ -10,8 +10,8 @@
 //! The syntax is the same as of Rust's `for` loops, the body of the loop can contain 0 or more
 //! nodes.
 //! ```rust
-//! use yew::{Properties, function_component, html::Html};
 //! use yew_html_ext::html;
+//! use yew::{Properties, function_component, html::Html};
 //!
 //! #[derive(PartialEq, Properties)]
 //! struct CountdownProps {
@@ -35,8 +35,8 @@
 //! once, the generated list will have repeated keys; as a best-effort attempt to prevent such
 //! cases, the macro disallows specifying literals or constants as keys
 //! ```rust,compile_fail
-//! # use yew::{Properties, function_component, html::Html};
 //! # use yew_html_ext::html;
+//! # use yew::{Properties, function_component, html::Html};
 //! #
 //! # #[derive(PartialEq, Properties)]
 //! # struct CountdownProps {
@@ -59,8 +59,8 @@
 //! The syntax is the same as of Rust's `match` expressions; the body of a match arm must have
 //! exactly 1 node.
 //! ```rust
-//! use yew::{Properties, function_component, html::Html};
 //! use yew_html_ext::html;
+//! use yew::{Properties, function_component, html::Html};
 //! use std::cmp::Ordering;
 //!
 //! #[derive(PartialEq, Properties)]
@@ -84,8 +84,8 @@
 //! Normal Rust's `let` bindings, including `let-else` structures, are supported with the same
 //! syntax.
 //! ```rust
-//! use yew::{Properties, function_component, html::Html};
 //! use yew_html_ext::html;
+//! use yew::{Properties, function_component, html::Html};
 //! use std::{fs::read_dir, path::PathBuf};
 //!
 //! #[derive(PartialEq, Properties)]
@@ -107,6 +107,22 @@
 //!                 <li>{ format!("{:?}", entry.path()) }</li>
 //!             }
 //!         </ul>
+//!     }
+//! }
+//! ```
+//! ## `#[cfg]` on props of elements & components
+//! Any number of `#[cfg]` attributes can be applied to any prop of a of an element or component.
+//!
+//! ```rust
+//! use yew_html_ext::html;
+//! use yew::{function_component, Html};
+//!
+//! #[function_component]
+//! fn DebugStmt() -> Html {
+//!     html! {
+//!         <code #[cfg(debug_assertions)] style="color: green">
+//!             { "Make sure this is not green" }
+//!         </code>
 //!     }
 //! }
 //! ```

@@ -2,26 +2,27 @@ error[E0277]: the trait bound `Unimplemented: yew::Component` is not satisfied
  --> tests/html_macro/component-unimplemented-fail.rs:4:30
   |
 4 |     ::yew_html_ext::html! { <Unimplemented /> };
-  |                              ^^^^^^^^^^^^^ the trait `yew::Component` is not implemented for `Unimplemented`
+  |                              ^^^^^^^^^^^^^ the trait `yew::Component` is not implemented for `Unimplemented`, which is required by `Unimplemented: BaseComponent`
   |
   = help: the trait `yew::Component` is implemented for `ContextProvider<T>`
   = note: required for `Unimplemented` to implement `BaseComponent`
   = note: this error originates in the macro `::yew_html_ext::html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0599]: the function or associated item `new` exists for struct `VChild<Unimplemented>`, but its trait bounds were not satisfied
-  --> tests/html_macro/component-unimplemented-fail.rs:4:30
-   |
-1  | struct Unimplemented;
-   | -------------------- doesn't satisfy `Unimplemented: BaseComponent`
+   --> tests/html_macro/component-unimplemented-fail.rs:4:30
+    |
+1   | struct Unimplemented;
+    | -------------------- doesn't satisfy `Unimplemented: BaseComponent` or `Unimplemented: yew::Component`
 ...
-4  |     ::yew_html_ext::html! { <Unimplemented /> };
-   |                              ^^^^^^^^^^^^^ function or associated item cannot be called on `VChild<Unimplemented>` due to unsatisfied trait bounds
-   |
-   = note: the following trait bounds were not satisfied:
-           `Unimplemented: BaseComponent`
-note: the following trait must be implemented
-  --> /Users/tim_evilov/.cargo/git/checkouts/yew-7424ad4d701b481c/e9739fc/packages/yew/src/html/component/mod.rs:89:1
-   |
-89 | pub trait BaseComponent: Sized + 'static {
-   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-   = note: this error originates in the macro `::yew_html_ext::html` (in Nightly builds, run with -Z macro-backtrace for more info)
+4   |     ::yew_html_ext::html! { <Unimplemented /> };
+    |                              ^^^^^^^^^^^^^ function or associated item cannot be called on `VChild<Unimplemented>` due to unsatisfied trait bounds
+    |
+    = note: the following trait bounds were not satisfied:
+            `Unimplemented: yew::Component`
+            which is required by `Unimplemented: BaseComponent`
+note: the trait `yew::Component` must be implemented
+   --> /Users/tim_evilov/.cargo/git/checkouts/yew-7424ad4d701b481c/84b7548/packages/yew/src/html/component/mod.rs:123:1
+    |
+123 | pub trait Component: Sized + 'static {
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    = note: this error originates in the macro `::yew_html_ext::html` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -1,33 +1,32 @@
-error[E0277]: `()` doesn't implement `std::fmt::Display`
+error[E0277]: the trait bound `(): Into<NodeSeq<(), VNode>>` is not satisfied
  --> tests/html_macro/block-fail.rs:6:15
   |
 6 |             { () }
   |               ^^
   |               |
-  |               `()` cannot be formatted with the default formatter
+  |               the trait `std::fmt::Display` is not implemented for `()`, which is required by `(): Into<NodeSeq<_, _>>`
   |               required by a bound introduced by this call
   |
-  = help: the trait `std::fmt::Display` is not implemented for `()`
-  = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
   = note: required for `()` to implement `ToString`
   = note: required for `VNode` to implement `From<()>`
   = note: required for `()` to implement `Into<VNode>`
   = note: 2 redundant requirements hidden
   = note: required for `()` to implement `Into<NodeSeq<(), VNode>>`
 
-error[E0277]: `()` doesn't implement `std::fmt::Display`
+error[E0277]: the trait bound `(): Into<VNode>` is not satisfied
   --> tests/html_macro/block-fail.rs:15:17
    |
 15 |         <>{ for (0..3).map(|_| not_tree()) }</>
-   |                 ^^^^^^ `()` cannot be formatted with the default formatter
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::fmt::Display` is not implemented for `()`, which is required by `(): Into<_>`
    |
-   = help: the trait `std::fmt::Display` is not implemented for `()`
-   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = note: required for `()` to implement `ToString`
    = note: required for `VNode` to implement `From<()>`
    = note: required for `()` to implement `Into<VNode>`
 note: required by a bound in `into_node_iter`
-  --> /Users/tim_evilov/.cargo/git/checkouts/yew-7424ad4d701b481c/e9739fc/packages/yew/src/utils/mod.rs:11:8
+  --> /Users/tim_evilov/.cargo/git/checkouts/yew-7424ad4d701b481c/84b7548/packages/yew/src/utils/mod.rs:11:8
    |
+8  | pub fn into_node_iter<IT, T, R>(it: IT) -> impl Iterator<Item = R>
+   |        -------------- required by a bound in this function
+...
 11 |     T: Into<R>,
    |        ^^^^^^^ required by this bound in `into_node_iter`

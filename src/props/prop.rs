@@ -4,7 +4,7 @@ use quote::{quote, quote_spanned};
 use syn::parse::{Parse, ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
-use syn::{braced, Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, Stmt, Token};
+use syn::{braced, Attribute, Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, Meta, Stmt, Token};
 
 use crate::html_tree::HtmlDashedName;
 use crate::stringify::Stringify;
@@ -15,6 +15,7 @@ pub enum PropDirective {
 }
 
 pub struct Prop {
+    pub cfg: Option<TokenStream>,
     pub directive: Option<PropDirective>,
     pub label: HtmlDashedName,
     /// Punctuation between `label` and `value`.
@@ -23,14 +24,29 @@ pub struct Prop {
 
 impl Parse for Prop {
     fn parse(input: ParseStream) -> syn::Result<Self> {
+        let cfg = Attribute::parse_outer(input)?
+            .into_iter()
+            .map(|attr| match attr.meta {
+                Meta::List(list) if list.path.is_ident("cfg") => Ok(list.tokens),
+                _ => Err(syn::Error::new_spanned(
+                    attr,
+                    "only the `#[cfg]` attribute is permitted on props"
+                )),
+            })
+            .reduce(|acc, i| {
+                let (acc, i) = (acc?, i?);
+                Ok(quote! { all(#acc, #i) })
+            })
+            .transpose()?;
+
         let directive = input
             .parse::<Token![~]>()
             .map(PropDirective::ApplyAsProperty)
             .ok();
         if input.peek(Brace) {
-            Self::parse_shorthand_prop_assignment(input, directive)
+            Self::parse_shorthand_prop_assignment(input, directive, cfg)
         } else {
-            Self::parse_prop_assignment(input, directive)
+            Self::parse_prop_assignment(input, directive, cfg)
         }
     }
 }
@@ -43,6 +59,7 @@ impl Prop {
     fn parse_shorthand_prop_assignment(
         input: ParseStream,
         directive: Option<PropDirective>,
+        cfg: Option<TokenStream>,
     ) -> syn::Result<Self> {
         let value;
         let _brace = braced!(value in input);
@@ -73,6 +90,7 @@ impl Prop {
             label,
             value: expr,
             directive,
+            cfg,
         })
     }
 
@@ -80,6 +98,7 @@ impl Prop {
     fn parse_prop_assignment(
         input: ParseStream,
         directive: Option<PropDirective>,
+        cfg: Option<TokenStream>,
     ) -> syn::Result<Self> {
         let label = input.parse::<HtmlDashedName>()?;
         let equals = input.parse::<Token![=]>().map_err(|_| {
@@ -103,6 +122,7 @@ impl Prop {
             label,
             value,
             directive,
+            cfg,
         })
     }
 }
@@ -345,10 +365,17 @@ impl SpecialProps {
             .as_ref()
             .map(|attr| {
                 let value = &attr.value;
-                quote_spanned! {value.span().resolved_at(Span::call_site())=>
-                    ::yew::html::IntoPropValue::<::yew::html::NodeRef>
-                    ::into_prop_value(#value)
-                }
+                let cfg1 = attr.cfg.iter();
+                let cfg2 = attr.cfg.iter();
+                quote_spanned! {value.span().resolved_at(Span::call_site())=> {
+                    #(#[cfg(#cfg1)])*
+                    let x = ::yew::html::IntoPropValue::<::yew::html::NodeRef>::into_prop_value(#value);
+                    #(
+                        #[cfg(not(#cfg2))]
+                        let x = <::yew::html::NodeRef as ::std::default::Default>::default();
+                    )*
+                    x
+                }}
             })
             .unwrap_or(quote! { ::std::default::Default::default() })
     }
@@ -358,11 +385,19 @@ impl SpecialProps {
             .as_ref()
             .map(|attr| {
                 let value = attr.value.optimize_literals();
-                quote_spanned! {value.span().resolved_at(Span::call_site())=>
-                    ::std::option::Option::Some(
+                let cfg1 = attr.cfg.iter();
+                let cfg2 = attr.cfg.iter();
+                quote_spanned! {value.span().resolved_at(Span::call_site())=> {
+                    #(#[cfg(#cfg1)])*
+                    let x = ::std::option::Option::Some(
                         ::std::convert::Into::<::yew::virtual_dom::Key>::into(#value)
-                    )
-                }
+                    );
+                    #(
+                        #[cfg(not(#cfg2))]
+                        let x = ::std::option::Option::None;
+                    )*
+                    x
+                }}
             })
             .unwrap_or(quote! { ::std::option::Option::None })
     }
