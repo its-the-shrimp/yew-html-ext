@@ -10,7 +10,7 @@ error[E0277]: `()` is not an iterator
 5 |     html! { for () };
   |                 ^^ `()` is not an iterator
   |
-  = help: the trait `Iterator` is not implemented for `()`, which is required by `(): IntoIterator`
+  = help: the trait `Iterator` is not implemented for `()`
   = note: required for `()` to implement `IntoIterator`
 
 error[E0277]: `()` is not an iterator
@@ -19,7 +19,7 @@ error[E0277]: `()` is not an iterator
 6 |     html! { {for ()} };
   |                  ^^ `()` is not an iterator
   |
-  = help: the trait `Iterator` is not implemented for `()`, which is required by `(): IntoIterator`
+  = help: the trait `Iterator` is not implemented for `()`
   = note: required for `()` to implement `IntoIterator`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
@@ -28,7 +28,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
 7 |     html! { for Vec::<()>::new().into_iter() };
   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ `()` cannot be formatted with the default formatter
   |
-  = help: the trait `std::fmt::Display` is not implemented for `()`, which is required by `VNode: FromIterator<_>`
+  = help: the trait `std::fmt::Display` is not implemented for `()`
   = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
   = help: the trait `FromIterator<A>` is implemented for `VNode`
   = note: required for `()` to implement `ToString`
@@ -47,7 +47,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
 10 |     html! { for empty };
    |                 ^^^^^ `()` cannot be formatted with the default formatter
    |
-   = help: the trait `std::fmt::Display` is not implemented for `()`, which is required by `VNode: FromIterator<_>`
+   = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = help: the trait `FromIterator<A>` is implemented for `VNode`
    = note: required for `()` to implement `ToString`
@@ -66,7 +66,7 @@ error[E0277]: `()` doesn't implement `std::fmt::Display`
 13 |     html! { {for empty.iter()} };
    |                  ^^^^^^^^^^^^ `()` cannot be formatted with the default formatter
    |
-   = help: the trait `std::fmt::Display` is not implemented for `()`, which is required by `VNode: FromIterator<_>`
+   = help: the trait `std::fmt::Display` is not implemented for `()`
    = note: in format strings you may be able to use `{:?}` (or {:#?} for pretty-print) instead
    = help: the trait `FromIterator<A>` is implemented for `VNode`
    = note: required for `&()` to implement `std::fmt::Display`
@@ -86,7 +86,7 @@ error[E0277]: `()` is not an iterator
 18 |             { for () }
    |                   ^^ `()` is not an iterator
    |
-   = help: the trait `Iterator` is not implemented for `()`, which is required by `(): IntoIterator`
+   = help: the trait `Iterator` is not implemented for `()`
    = note: required for `()` to implement `IntoIterator`
 note: required by a bound in `into_node_iter`
   --> $CARGO/yew-0.21.0/src/utils/mod.rs
@@ -108,7 +108,7 @@ error[E0277]: `()` is not an iterator
 20 | |     };
    | |_____^ `()` is not an iterator
    |
-   = help: the trait `Iterator` is not implemented for `()`, which is required by `(): IntoIterator`
+   = help: the trait `Iterator` is not implemented for `()`
    = note: required for `()` to implement `IntoIterator`
 note: required by a bound in `into_node_iter`
   --> $CARGO/yew-0.21.0/src/utils/mod.rs

@@ -1,4 +1,4 @@
-use super::HtmlRootVNode;
+use super::{AsVNode, HtmlTree};
 use crate::{OptionExt, PeekValue};
 use proc_macro2::TokenStream;
 use quote::{quote, quote_spanned, ToTokens};
@@ -15,7 +15,7 @@ pub struct HtmlMatchArm {
     pat: Pat,
     guard: Option<(Token![if], Expr)>,
     fat_arrow_token: Token![=>],
-    body: HtmlRootVNode,
+    body: AsVNode<HtmlTree>,
 }
 
 impl Parse for HtmlMatchArm {

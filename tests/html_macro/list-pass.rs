@@ -57,4 +57,10 @@ fn main() {
         html! { <span>{ "World" }</span> },
     ];
     _ = html! { <>{ children }</> };
+
+    // Testing the implicit top-level list
+    _ = html! {
+        <div />
+        <div />
+    };
 }

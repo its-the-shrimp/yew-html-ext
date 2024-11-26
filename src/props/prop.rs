@@ -147,12 +147,10 @@ fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
 
         match &expr {
             Expr::Lit(_) => Ok(expr),
-            ref exp => Err(syn::Error::new_spanned(
+            _ => Err(syn::Error::new_spanned(
                 &expr,
-                format!(
-                    "the property value must be either a literal or enclosed in braces. Consider \
-                     adding braces around your expression.: {exp:#?}"
-                ),
+                "the property value must be either a literal or enclosed in braces. Consider \
+                 adding braces around your expression.",
             )),
         }
     }
@@ -350,16 +348,6 @@ impl SpecialProps {
         let node_ref = props.pop_unique(Self::REF_LABEL)?;
         let key = props.pop_unique(Self::KEY_LABEL)?;
         Ok(Self { node_ref, key })
-    }
-
-    fn iter(&self) -> impl Iterator<Item = &Prop> {
-        self.node_ref.as_ref().into_iter().chain(self.key.as_ref())
-    }
-
-    /// Run the given function for all props and aggregate the errors.
-    /// If there's at least one error, the result will be `Result::Err`.
-    pub fn check_all(&self, f: impl FnMut(&Prop) -> syn::Result<()>) -> syn::Result<()> {
-        crate::join_errors(self.iter().map(f).filter_map(Result::err))
     }
 
     pub fn wrap_node_ref_attr(&self) -> TokenStream {

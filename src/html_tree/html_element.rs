@@ -402,18 +402,6 @@ impl ToTokens for HtmlElement {
                     }}
                 });
 
-                #[cfg(nightly_yew)]
-                let invalid_void_tag_msg_start = {
-                    let span = vtag.span().unwrap();
-                    let source_file = span.source_file().path();
-                    let source_file = source_file.display();
-                    let start = span.start();
-                    format!("[{}:{}:{}] ", source_file, start.line(), start.column())
-                };
-
-                #[cfg(not(nightly_yew))]
-                let invalid_void_tag_msg_start = "";
-
                 // this way we get a nice error message (with the correct span) when the expression
                 // doesn't return a valid value
                 quote_spanned! {expr.span()=> {
@@ -477,7 +465,7 @@ impl ToTokens for HtmlElement {
                                 "area" | "base" | "br" | "col" | "embed" | "hr" | "img" | "input"
                                     | "link" | "meta" | "param" | "source" | "track" | "wbr"
                             ),
-                            concat!(#invalid_void_tag_msg_start, "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children."),
+                            "a dynamic tag tried to create a `<{0}>` tag with children. `<{0}>` is a void element which can't have any children.",
                             #vtag.tag(),
                         );
                     }

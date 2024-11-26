@@ -13,6 +13,7 @@ pub struct HtmlBlock {
 }
 
 pub enum BlockContent {
+    Empty,
     Node(Box<HtmlNode>),
     Iterable(Box<HtmlIterable>),
 }
@@ -29,6 +30,8 @@ impl Parse for HtmlBlock {
         let brace = braced!(content in input);
         let content = if HtmlIterable::peek(content.cursor()).is_some() {
             BlockContent::Iterable(Box::new(content.parse()?))
+        } else if content.is_empty() {
+            BlockContent::Empty
         } else {
             BlockContent::Node(Box::new(content.parse()?))
         };
@@ -39,13 +42,13 @@ impl Parse for HtmlBlock {
 
 impl ToTokens for HtmlBlock {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let HtmlBlock { content, .. } = self;
-        let new_tokens = match content {
-            BlockContent::Iterable(html_iterable) => quote! {#html_iterable},
-            BlockContent::Node(html_node) => quote! {#html_node},
-        };
-
-        tokens.extend(quote! {#new_tokens});
+        match &self.content {
+            BlockContent::Iterable(html_iterable) => html_iterable.to_tokens(tokens),
+            BlockContent::Node(html_node) => html_node.to_tokens(tokens),
+            BlockContent::Empty => tokens.extend(quote! {
+                <::yew::virtual_dom::VNode as ::std::default::Default>::default()
+            }),
+        }
     }
 }
 
@@ -55,6 +58,7 @@ impl ToNodeIterator for HtmlBlock {
         let new_tokens = match content {
             BlockContent::Iterable(iterable) => iterable.to_node_iterator_stream(),
             BlockContent::Node(node) => node.to_node_iterator_stream(),
+            BlockContent::Empty => None,
         }?;
 
         Some(quote_spanned! {brace.span=> #new_tokens})
