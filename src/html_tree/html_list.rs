@@ -8,7 +8,6 @@ use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
-use syn::Expr;
 
 pub struct HtmlList {
     open: HtmlListOpen,
@@ -58,35 +57,47 @@ impl Parse for HtmlList {
     }
 }
 
+pub fn generate_vlist_tokens(
+    children: impl ToTokens,
+    key: Option<&Prop>,
+    span: proc_macro2::Span,
+    tokens: &mut proc_macro2::TokenStream,
+) {
+    let key = if let Some(key) = key {
+        let v = &key.value;
+        let cfg1 = key.cfg.iter();
+        let cfg2 = key.cfg.iter();
+        quote_spanned! {key.value.span()=> {
+            #(#[cfg(#cfg1)])*
+            let x = ::std::option::Option::Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#v));
+            #(
+                #[cfg(#cfg2)]
+                let x = ::std::option::Option::<::yew::virtual_dom::Key>::None;
+            )*
+            x
+        }}
+    } else {
+        quote! { ::std::option::Option::None }
+    };
+
+    tokens.extend(quote_spanned! {span=>
+        ::yew::virtual_dom::VNode::VList(
+            ::std::rc::Rc::new(
+                ::yew::virtual_dom::VList::with_children(#children, #key)
+            )
+        )
+    });
+}
+
 impl ToTokens for HtmlList {
     fn to_tokens(&self, tokens: &mut proc_macro2::TokenStream) {
-        let Self {
-            open,
-            children,
-            close,
-        } = &self;
-
-        let key = if let Some(key) = &open.props.key {
-            quote_spanned! {key.span()=>
-                ::std::option::Option::Some(::std::convert::Into::<::yew::virtual_dom::Key>::into(#key))
-            }
-        } else {
-            quote! { ::std::option::Option::None }
+        let span = {
+            let open = self.open.to_spanned();
+            let close = self.close.to_spanned();
+            quote! { #open #close }.span()
         };
 
-        let spanned = {
-            let open = open.to_spanned();
-            let close = close.to_spanned();
-            quote! { #open #close }
-        };
-
-        tokens.extend(quote_spanned! {spanned.span()=>
-            ::yew::virtual_dom::VNode::VList(
-                ::std::rc::Rc::new(
-                    ::yew::virtual_dom::VList::with_children(#children, #key)
-                )
-            )
-        });
+        generate_vlist_tokens(&self.children, self.open.props.key.as_ref(), span, tokens);
     }
 }
 
@@ -128,7 +139,7 @@ impl Parse for HtmlListOpen {
 }
 
 struct HtmlListProps {
-    key: Option<Expr>,
+    key: Option<Prop>,
 }
 impl Parse for HtmlListProps {
     fn parse(input: ParseStream) -> syn::Result<Self> {
@@ -147,7 +158,7 @@ impl Parse for HtmlListProps {
                 ));
             }
 
-            Some(prop.value)
+            Some(prop)
         };
 
         Ok(Self { key })

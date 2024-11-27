@@ -1,5 +1,0 @@
-error: unexpected end of input, expected an expression
- --> tests/html_macro/match-fail.rs:5:45
-  |
-5 |             ::std::option::Option::None => {},
-  |                                             ^

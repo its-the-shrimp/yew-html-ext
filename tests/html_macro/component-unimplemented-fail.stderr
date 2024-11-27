@@ -2,7 +2,7 @@ error[E0277]: the trait bound `Unimplemented: yew::Component` is not satisfied
  --> tests/html_macro/component-unimplemented-fail.rs:4:30
   |
 4 |     ::yew_html_ext::html! { <Unimplemented /> };
-  |                              ^^^^^^^^^^^^^ the trait `yew::Component` is not implemented for `Unimplemented`, which is required by `Unimplemented: BaseComponent`
+  |                              ^^^^^^^^^^^^^ the trait `yew::Component` is not implemented for `Unimplemented`
   |
   = help: the trait `yew::Component` is implemented for `ContextProvider<T>`
   = note: required for `Unimplemented` to implement `BaseComponent`

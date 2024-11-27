@@ -25,5 +25,5 @@ once_cell = "1"
 # testing
 [dev-dependencies]
 rustversion = "1"
-trybuild = "1"
+trybuild = { git = "https://github.com/its-the-shrimp/trybuild.git", branch = "improve-diff", features = ["diff"] }
 yew = { git = "https://github.com/yewstack/yew.git", branch = "master" }

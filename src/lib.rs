@@ -1,5 +1,3 @@
-#![cfg_attr(nightly_yew, feature(proc_macro_span))]
-
 //! This crate provides handy extensions to [Yew](https://yew.rs)'s
 //! [HTML macros](https://docs.rs/yew/latest/yew/macro.html.html).
 //! It provides [`html!`] and [`html_nested!`] macros that are fully backwards-compatible with the
@@ -131,7 +129,7 @@ mod html_tree;
 mod props;
 mod stringify;
 
-use html_tree::{HtmlMacroInput, HtmlRoot, HtmlRootVNode};
+use html_tree::{HtmlRoot, AsVNode};
 use proc_macro::TokenStream;
 use quote::ToTokens;
 use syn::buffer::Cursor;
@@ -190,13 +188,13 @@ fn is_ide_completion() -> bool {
 #[proc_macro_error::proc_macro_error]
 #[proc_macro]
 pub fn html_nested(input: TokenStream) -> TokenStream {
-    let root = parse_macro_input!(input as HtmlMacroInput<HtmlRoot>);
-    TokenStream::from(root.0.into_token_stream())
+    let root = parse_macro_input!(input as HtmlRoot);
+    TokenStream::from(root.into_token_stream())
 }
 
 #[proc_macro_error::proc_macro_error]
 #[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
-    let root = parse_macro_input!(input as HtmlMacroInput<HtmlRootVNode>);
-    TokenStream::from(root.0.into_token_stream())
+    let root = parse_macro_input!(input as AsVNode<HtmlRoot>);
+    TokenStream::from(root.into_token_stream())
 }

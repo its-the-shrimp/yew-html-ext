@@ -1,7 +1,6 @@
 mod component;
 mod element;
 mod prop;
-mod prop_macro;
 
 pub use component::*;
 pub use element::*;

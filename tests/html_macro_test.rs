@@ -62,4 +62,5 @@ fn props_are_cfged_out() {
     let x = html! { <Foo #[cfg(nothing)] x=69 #[cfg(nothing)] key="x" /> };
     let y = html! { <Foo /> };
     assert_eq!(x, y);
+
 }
