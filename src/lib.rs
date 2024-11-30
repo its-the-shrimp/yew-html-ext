@@ -185,14 +185,14 @@ fn is_ide_completion() -> bool {
     }
 }
 
-#[proc_macro_error::proc_macro_error]
+#[proc_macro_error2::proc_macro_error]
 #[proc_macro]
 pub fn html_nested(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as HtmlRoot);
     TokenStream::from(root.into_token_stream())
 }
 
-#[proc_macro_error::proc_macro_error]
+#[proc_macro_error2::proc_macro_error]
 #[proc_macro]
 pub fn html(input: TokenStream) -> TokenStream {
     let root = parse_macro_input!(input as AsVNode<HtmlRoot>);
