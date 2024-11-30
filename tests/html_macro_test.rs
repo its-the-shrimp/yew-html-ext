@@ -55,7 +55,7 @@ fn props_are_cfged_out() {
         Html::default()
     }
 
-    let x = html! { <div #[cfg(nothing)] id="id" #[cfg(nothing)] key="x" /> };
+    let x = html! { <feBlend #[cfg(nothing)] id="id" #[cfg(nothing)] key="x" /> };
     let y = html! { <div /> };
     assert_eq!(x, y);
 
