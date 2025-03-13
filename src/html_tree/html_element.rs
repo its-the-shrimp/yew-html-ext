@@ -46,7 +46,7 @@ fn is_normalised_element_name(name: &str) -> bool {
         | "linearGradient"
         | "radialGradient"
         | "textPath" => true,
-        _ => name.chars().all(|c| c.is_ascii_lowercase()),
+        _ => !name.chars().any(|c| c.is_ascii_uppercase()),
     }
 }
 
