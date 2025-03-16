@@ -267,7 +267,7 @@ fn advance_until_next_dot2(input: &ParseBuffer) -> syn::Result<()> {
 /// - Strips all whitespace after a unescaped [semi]colon that's not inside quotes
 /// - Removes the final semicolon
 pub fn minify_css(mut s: String) -> String {
-    let mut stripping = false;
+    let mut stripping = true;
     let mut escaped = false;
     let mut in_quotes = false;
 

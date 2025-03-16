@@ -9,13 +9,14 @@ a number of syntactic extensions. Being a drop-in replacement, all one has to do
 1. Add it to the project's dependencies
 ```toml
 [dependencies]
-yew-html-ext = "0.1"
+yew-html-ext = "0.3"
 ```
 2. Replace uses/imports of `yew::html{_nested}` with `yew_html_ext::html{_nested}`
 
 The provided macros facilitate an experimental ground for potential additions to Yew HTML proper,
 which is why the base features are untouched, only new ones are added.
-The specific syntax provided by the library is explained in [the docs](https://docs.rs/yew-html-ext/latest/yew_html_ext)
+The specific syntax provided by the library is explained in
+#### [the docs](https://docs.rs/yew-html-ext/latest/yew_html_ext)
 
 ## Format this new fancy HTML
 [`yew-fmt`](https://github.com/schvv31n/yew-fmt) has support for this extended syntax,

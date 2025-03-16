@@ -55,7 +55,7 @@
 //! ```
 //! ## `match` nodes
 //! The syntax is the same as of Rust's `match` expressions; the body of a match arm must have
-//! exactly 1 node.
+//! exactly 1 node. That node may be just `{}`, which will expand to nothing.
 //! ```rust
 //! use yew_html_ext::html;
 //! use yew::{Properties, function_component, html::Html};
@@ -74,6 +74,7 @@
 //!             Ordering::Less => { '<' },
 //!             Ordering::Equal => { '=' },
 //!             Ordering::Greater => { '>' },
+//!             _ => {},
 //!         }
 //!     }
 //! }
@@ -109,7 +110,7 @@
 //! }
 //! ```
 //! ## `#[cfg]` on props of elements & components
-//! Any number of `#[cfg]` attributes can be applied to any prop of a of an element or component.
+//! Any number of `#[cfg]` attributes can be applied to any prop of an element or component.
 //!
 //! ```rust
 //! use yew_html_ext::html;
@@ -118,9 +119,42 @@
 //! #[function_component]
 //! fn DebugStmt() -> Html {
 //!     html! {
-//!         <code #[cfg(debug_assertions)] style="color: green">
+//!         <code #[cfg(debug_assertions)] style="color: green;">
 //!             { "Make sure this is not green" }
 //!         </code>
+//!     }
+//! }
+//! ```
+//! ## Any number of top-level nodes is allowed
+//! The limitation of only 1 top-level node per macro invocation of standard Yew is lifted.
+//! 
+//! ```rust
+//! use yew_html_ext::html;
+//! use yew::{function_component, Html};
+//!
+//! #[function_component]
+//! fn Main() -> Html {
+//!     html! {
+//!         <h1>{"Node 1"}</h1>
+//!         <h2>{"Node 2"}</h2> // standard Yew would fail right around here
+//!     }
+//! }
+//! ```
+//! ## Optimisation: minified inline CSS
+//! If the `style` attribute of an HTML element is set to a string literal, that string's contents
+//! are interpreted as CSS & minified, namely, the whitespace between the rules & between the key &
+//! value of a rule is removed, and a trailing semicolon is stripped.
+//! ```rust
+//! use yew_html_ext::html;
+//! use yew::{function_component, Html};
+//!
+//! #[function_component]
+//! fn DebugStmt() -> Html {
+//!     html! {
+//!         // the assigned style will be just `"color:green"`
+//!         <strong style="
+//!             color: green;
+//!         ">{"Hackerman"}</strong>
 //!     }
 //! }
 //! ```
