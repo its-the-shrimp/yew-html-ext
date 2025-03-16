@@ -144,7 +144,7 @@ impl Parse for HtmlListProps {
         let key = if input.is_empty() {
             None
         } else {
-            let prop: Prop = input.parse()?;
+            let prop: Prop = Prop::parse(input, None)?;
             if !input.is_empty() {
                 return Err(input.error("only a single `key` prop is allowed on a fragment"));
             }
@@ -176,7 +176,7 @@ impl PeekValue<()> for HtmlListClose {
         let (_, cursor) = cursor.punct().filter(|(punct, _)| punct.as_char() == '/')?;
         cursor
             .punct()
-            .map_or(false, |(punct, _)| punct.as_char() == '>')
+            .is_some_and(|(punct, _)| punct.as_char() == '>')
             .then_some(())
     }
 }

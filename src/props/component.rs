@@ -101,13 +101,17 @@ impl ComponentProps {
                     let mut #builder_ident = <#props_ty as ::yew::html::Properties>::builder();
                     let #token_ident = ::yew::html::AssertAllProps;
                 };
-                let set_props = self.props.iter().map(|Prop { cfg, label, value, .. }| {
-                    let cfg = cfg.iter();
-                    quote_spanned! {value.span()=>
-                        #(#[cfg(#cfg)])*
-                        let #token_ident = #builder_ident.#label(#token_ident, #value);
-                    }
-                });
+                let set_props = self.props.iter().map(
+                    |Prop {
+                         cfg, label, value, ..
+                     }| {
+                        let cfg = cfg.iter();
+                        quote_spanned! {value.span()=>
+                            #(#[cfg(#cfg)])*
+                            let #token_ident = #builder_ident.#label(#token_ident, #value);
+                        }
+                    },
+                );
                 let set_children = children_renderer.map(|children| {
                     quote_spanned! {props_ty.span()=>
                         let #token_ident = #builder_ident.children(#token_ident, #children);
@@ -128,13 +132,17 @@ impl ComponentProps {
             // all values are initialized
             Some(expr) => {
                 let ident = Ident::new("__yew_props", props_ty.span());
-                let set_props = self.props.iter().map(|Prop { cfg, label, value, .. }| {
-                    let cfg = cfg.iter();
-                    quote_spanned! {value.span().resolved_at(Span::call_site())=>
-                        #(#[cfg(#cfg)])*
-                        #ident.#label = ::yew::html::IntoPropValue::into_prop_value(#value);
-                    }
-                });
+                let set_props = self.props.iter().map(
+                    |Prop {
+                         cfg, label, value, ..
+                     }| {
+                        let cfg = cfg.iter();
+                        quote_spanned! {value.span().resolved_at(Span::call_site())=>
+                            #(#[cfg(#cfg)])*
+                            #ident.#label = ::yew::html::IntoPropValue::into_prop_value(#value);
+                        }
+                    },
+                );
                 let set_children = children_renderer.map(|children| {
                     quote_spanned! {props_ty.span()=>
                         #ident.children = ::yew::html::IntoPropValue::into_prop_value(#children);
@@ -164,7 +172,7 @@ impl ComponentProps {
 
 impl Parse for ComponentProps {
     fn parse(input: ParseStream) -> syn::Result<Self> {
-        let props = validate(input.parse()?)?;
+        let props = validate(Props::parse(input, None)?)?;
         let base_expr = if input.is_empty() {
             None
         } else {

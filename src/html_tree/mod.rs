@@ -276,11 +276,7 @@ fn only_single_node_children(children: &[impl ToNodeIterator]) -> bool {
         .all(|s| s.is_none())
 }
 
-pub fn to_build_vec_tokens(
-    bindings: &[HtmlLet],
-    children: &[HtmlTree],
-    tokens: &mut TokenStream,
-) {
+pub fn to_build_vec_tokens(bindings: &[HtmlLet], children: &[HtmlTree], tokens: &mut TokenStream) {
     if only_single_node_children(children) {
         // optimize for the common case where all children are single nodes (only using literal
         // html).
@@ -457,8 +453,7 @@ impl HtmlChildrenTree {
     }
 
     pub fn size_hint(&self) -> Option<usize> {
-        only_single_node_children(&self.children)
-            .then_some(self.children.len())
+        only_single_node_children(&self.children).then_some(self.children.len())
     }
 }
 

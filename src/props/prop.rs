@@ -1,12 +1,16 @@
 use std::convert::TryFrom;
+use std::io::Write;
 use std::ops::{Deref, DerefMut};
 
 use proc_macro2::{Spacing, Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned};
-use syn::parse::{Parse, ParseBuffer, ParseStream};
+use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;
-use syn::{braced, Attribute, Block, Expr, ExprBlock, ExprMacro, ExprPath, ExprRange, Meta, Stmt, Token};
+use syn::{
+    braced, Attribute, Block, Expr, ExprBlock, ExprLit, ExprMacro, ExprPath, ExprRange, Lit,
+    LitStr, Meta, Stmt, Token,
+};
 
 use crate::html_tree::HtmlDashedName;
 use crate::stringify::Stringify;
@@ -24,15 +28,15 @@ pub struct Prop {
     pub value: Expr,
 }
 
-impl Parse for Prop {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+impl Prop {
+    pub fn parse(input: ParseStream, element: Option<&HtmlDashedName>) -> syn::Result<Self> {
         let cfg = Attribute::parse_outer(input)?
             .into_iter()
             .map(|attr| match attr.meta {
                 Meta::List(list) if list.path.is_ident("cfg") => Ok(list.tokens),
                 _ => Err(syn::Error::new_spanned(
                     attr,
-                    "only the `#[cfg]` attribute is permitted on props"
+                    "only the `#[cfg]` attribute is permitted on props",
                 )),
             })
             .reduce(|acc, i| {
@@ -48,7 +52,7 @@ impl Parse for Prop {
         if input.peek(Brace) {
             Self::parse_shorthand_prop_assignment(input, directive, cfg)
         } else {
-            Self::parse_prop_assignment(input, directive, cfg)
+            Self::parse_prop_assignment(input, directive, cfg, element)
         }
     }
 }
@@ -101,6 +105,7 @@ impl Prop {
         input: ParseStream,
         directive: Option<PropDirective>,
         cfg: Option<TokenStream>,
+        element: Option<&HtmlDashedName>,
     ) -> syn::Result<Self> {
         let label = input.parse::<HtmlDashedName>()?;
         let equals = input.parse::<Token![=]>().map_err(|_| {
@@ -119,7 +124,8 @@ impl Prop {
             ));
         }
 
-        let value = parse_prop_value(input)?;
+        let is_inline_css_attr = element.is_some_and(|e| is_inline_css_attr(e, &label));
+        let value = parse_prop_value(input, is_inline_css_attr)?;
         Ok(Self {
             label,
             value,
@@ -129,7 +135,30 @@ impl Prop {
     }
 }
 
-fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
+pub fn is_inline_css_attr(element: &HtmlDashedName, attr: &HtmlDashedName) -> bool {
+    let mut buf = [0u8; 16];
+    if write!(&mut buf[..], "{}", element.name).is_err() {
+        return false; // If this reached, the name's too long & wouldn't pass the check anyway
+    };
+    let element = str::from_utf8(&buf)
+        .expect("UTF-8 element name")
+        .trim_end_matches('\0');
+
+    match element {
+        "a" | "abbr" | "article" | "aside" | "audio" | "b" | "blockquote" | "br" | "button"
+        | "canvas" | "caption" | "cite" | "code" | "col" | "colgroup" | "details" | "div"
+        | "dl" | "dt" | "dd" | "em" | "figcaption" | "figure" | "fieldset" | "footer" | "form"
+        | "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "header" | "hr" | "i" | "iframe" | "img"
+        | "input" | "label" | "legend" | "li" | "main" | "mark" | "meter" | "nav" | "ol"
+        | "option" | "p" | "pre" | "progress" | "section" | "select" | "small" | "span"
+        | "strong" | "sub" | "summary" | "sup" | "table" | "tbody" | "td" | "textarea"
+        | "tfoot" | "th" | "thead" | "time" | "tr" | "u" | "ul" | "video" => attr.name == "style",
+
+        _ => false,
+    }
+}
+
+fn parse_prop_value(input: &ParseBuffer, is_inline_css_attr: bool) -> syn::Result<Expr> {
     if input.peek(Brace) {
         strip_braces(input.parse()?)
     } else {
@@ -146,6 +175,12 @@ fn parse_prop_value(input: &ParseBuffer) -> syn::Result<Expr> {
         };
 
         match &expr {
+            Expr::Lit(ExprLit {
+                lit: Lit::Str(s), ..
+            }) if is_inline_css_attr => Ok(Expr::Lit(ExprLit {
+                attrs: vec![],
+                lit: Lit::Str(LitStr::new(&minify_css(s.value()), s.span())),
+            })),
             Expr::Lit(_) => Ok(expr),
             _ => Err(syn::Error::new_spanned(
                 &expr,
@@ -227,6 +262,39 @@ fn advance_until_next_dot2(input: &ParseBuffer) -> syn::Result<()> {
         }
         Err(cursor.error("no `..` found in expression"))
     })
+}
+
+/// - Strips all whitespace after a unescaped [semi]colon that's not inside quotes
+/// - Removes the final semicolon
+pub fn minify_css(mut s: String) -> String {
+    let mut stripping = false;
+    let mut escaped = false;
+    let mut in_quotes = false;
+
+    s.retain(|c| {
+        if stripping {
+            if c.is_ascii_whitespace() {
+                return false;
+            }
+            stripping = false;
+            in_quotes = c == '"';
+            return true;
+        }
+
+        match c {
+            '"' if !escaped => in_quotes = !in_quotes,
+            ':' | ';' if !in_quotes => stripping = true,
+            _ => escaped = c == '\\',
+        }
+
+        true
+    });
+
+    if s.ends_with(';') {
+        s.pop();
+    }
+
+    s
 }
 
 /// List of props sorted in alphabetical order*.
@@ -316,17 +384,19 @@ impl PropList {
         }))
     }
 }
-impl Parse for PropList {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
+
+impl PropList {
+    pub fn parse(input: ParseStream, element: Option<&HtmlDashedName>) -> syn::Result<Self> {
         let mut props: Vec<Prop> = Vec::new();
         // Stop parsing props if a base expression preceded by `..` is reached
         while !input.is_empty() && !input.peek(Token![..]) {
-            props.push(input.parse()?);
+            props.push(Prop::parse(input, element)?);
         }
 
         Ok(Self::new(props))
     }
 }
+
 impl Deref for PropList {
     type Target = [Prop];
 
@@ -397,11 +467,13 @@ pub struct Props {
     pub special: SpecialProps,
     pub prop_list: PropList,
 }
-impl Parse for Props {
-    fn parse(input: ParseStream) -> syn::Result<Self> {
-        Self::try_from(input.parse::<PropList>()?)
+
+impl Props {
+    pub fn parse(input: ParseStream, element: Option<&HtmlDashedName>) -> syn::Result<Self> {
+        Self::try_from(PropList::parse(input, element)?)
     }
 }
+
 impl Deref for Props {
     type Target = PropList;
 
@@ -409,6 +481,7 @@ impl Deref for Props {
         &self.prop_list
     }
 }
+
 impl DerefMut for Props {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.prop_list

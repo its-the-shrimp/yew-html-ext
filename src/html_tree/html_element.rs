@@ -13,7 +13,7 @@ use crate::{is_ide_completion, non_capitalized_ascii, Peek, PeekValue};
 
 fn is_normalised_element_name(name: &str) -> bool {
     match name {
-        | "animateMotion"
+        "animateMotion"
         | "animateTransform"
         | "clipPath"
         | "feBlend"
@@ -196,10 +196,10 @@ impl ToTokens for HtmlElement {
         let attributes = {
             let normal_attrs = attributes.iter().map(
                 |Prop {
-                    cfg,
-                    label,
-                    value,
-                    directive,
+                     cfg,
+                     label,
+                     value,
+                     directive,
                  }| {
                     PreparedAttr {
                         cfg: cfg.clone(),
@@ -212,11 +212,11 @@ impl ToTokens for HtmlElement {
 
             let boolean_attrs = booleans.iter().filter_map(
                 |Prop {
-                    cfg,
-                    label,
-                    value,
-                    directive,
-                }| {
+                     cfg,
+                     label,
+                     value,
+                     directive,
+                 }| {
                     let key = label.to_lit_str();
                     Some(PreparedAttr {
                         cfg: cfg.clone(),
@@ -289,11 +289,15 @@ impl ToTokens for HtmlElement {
             }
 
             /// Try to turn attribute list into a `::yew::virtual_dom::Attributes::Static`
-            fn try_into_static(
-                src: &[PreparedAttr],
-            ) -> Option<TokenStream> {
+            fn try_into_static(src: &[PreparedAttr]) -> Option<TokenStream> {
                 let mut kv = Vec::with_capacity(src.len());
-                for PreparedAttr { key, value, cfg, directive } in src.iter() {
+                for PreparedAttr {
+                    key,
+                    value,
+                    cfg,
+                    directive,
+                } in src.iter()
+                {
                     let value = match value {
                         Value::Static(v) => quote! { #v },
                         Value::Dynamic(_) => return None,
@@ -335,14 +339,18 @@ impl ToTokens for HtmlElement {
         let listeners = if listeners.is_empty() {
             quote! { ::yew::virtual_dom::listeners::Listeners::None }
         } else {
-            let listeners_it = listeners.iter().map(|Prop { label, value, cfg, .. }| {
-                let name = &label.name;
-                let cfg = cfg.iter();
-                quote! {
-                    #(#[cfg(#cfg)])*
-                    ::yew::html::#name::Wrapper::__macro_new(#value)
-                }
-            });
+            let listeners_it = listeners.iter().map(
+                |Prop {
+                     label, value, cfg, ..
+                 }| {
+                    let name = &label.name;
+                    let cfg = cfg.iter();
+                    quote! {
+                        #(#[cfg(#cfg)])*
+                        ::yew::html::#name::Wrapper::__macro_new(#value)
+                    }
+                },
+            );
 
             quote! {
                 ::yew::virtual_dom::listeners::Listeners::Pending(
@@ -661,7 +669,13 @@ impl Parse for HtmlElementOpen {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         TagTokens::parse_start_content(input, |input, tag| {
             let name = input.parse::<TagName>()?;
-            let mut props = input.parse::<ElementProps>()?;
+            let mut props = ElementProps::parse(
+                input,
+                match &name {
+                    TagName::Lit(name) => Some(name),
+                    TagName::Expr(_) => None,
+                },
+            )?;
 
             match &name {
                 TagName::Lit(name) => {

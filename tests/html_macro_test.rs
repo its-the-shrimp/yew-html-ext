@@ -1,5 +1,5 @@
-use yew_html_ext::{html, html_nested};
 use yew::{function_component, Html, Properties};
+use yew_html_ext::{html, html_nested};
 
 #[allow(dead_code)]
 //#[rustversion::attr(stable(1.67), test)]
@@ -49,7 +49,7 @@ fn props_are_cfged_out() {
         #[prop_or_default]
         x: i32,
     }
-    
+
     #[function_component]
     fn Foo(_: &FooProps) -> Html {
         Html::default()
@@ -62,5 +62,4 @@ fn props_are_cfged_out() {
     let x = html! { <Foo #[cfg(nothing)] x=69 #[cfg(nothing)] key="x" /> };
     let y = html! { <Foo /> };
     assert_eq!(x, y);
-
 }

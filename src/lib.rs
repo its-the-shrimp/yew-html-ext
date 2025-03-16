@@ -129,7 +129,7 @@ mod html_tree;
 mod props;
 mod stringify;
 
-use html_tree::{HtmlRoot, AsVNode};
+use html_tree::{AsVNode, HtmlRoot};
 use proc_macro::TokenStream;
 use quote::ToTokens;
 use syn::buffer::Cursor;
