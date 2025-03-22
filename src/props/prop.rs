@@ -1,9 +1,9 @@
+use proc_macro2::{Spacing, Span, TokenStream, TokenTree};
+use quote::{quote, quote_spanned};
 use std::convert::TryFrom;
 use std::io::Write;
 use std::ops::{Deref, DerefMut};
-
-use proc_macro2::{Spacing, Span, TokenStream, TokenTree};
-use quote::{quote, quote_spanned};
+use std::str;
 use syn::parse::{ParseBuffer, ParseStream};
 use syn::spanned::Spanned;
 use syn::token::Brace;

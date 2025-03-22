@@ -127,7 +127,7 @@
 //! ```
 //! ## Any number of top-level nodes is allowed
 //! The limitation of only 1 top-level node per macro invocation of standard Yew is lifted.
-//! 
+//!
 //! ```rust
 //! use yew_html_ext::html;
 //! use yew::{function_component, Html};
