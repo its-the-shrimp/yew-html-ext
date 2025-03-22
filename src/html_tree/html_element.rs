@@ -528,13 +528,13 @@ fn wrap_attr_value(value: impl ToTokens, cfg: Option<impl ToTokens>) -> TokenStr
     let cfg1 = cfg.iter();
     let cfg2 = cfg.iter();
     quote_spanned! {value.span()=> {
-        #(#[cfg(#cfg1)])*
-        let x = ::yew::html::IntoPropValue::<::std::option::Option<::yew::virtual_dom::AttrValue>>::into_prop_value(#value);
-        #(
+        #(#[cfg(#cfg1)] let x =)*
+        ::yew::html::IntoPropValue::<::std::option::Option<::yew::virtual_dom::AttrValue>>::into_prop_value(#value)
+        #(;
             #[cfg(not(#cfg2))]
             let x = ::std::option::Option::<::yew::virtual_dom::AttrValue>::None;
+            x
         )*
-        x
     }}
 }
 

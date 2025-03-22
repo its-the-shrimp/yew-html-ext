@@ -63,3 +63,19 @@ fn props_are_cfged_out() {
     let y = html! { <Foo /> };
     assert_eq!(x, y);
 }
+
+#[test]
+#[deny(warnings)]
+fn warnings() {
+    let placeholder = "Disabled input";
+    _ = html! {
+        <input placeholder={placeholder} />
+    };
+    _ = html! {
+        <input disabled=true placeholder={placeholder}/>
+    };
+    let placeholder = "Disabled input";
+    _ = html! {
+        <input disabled=true {placeholder} />
+    };
+}
