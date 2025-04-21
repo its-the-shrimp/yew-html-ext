@@ -1,4 +1,3 @@
-use crate::{is_ide_completion, PeekValue};
 use proc_macro2::{Delimiter, Ident, Span, TokenStream, TokenTree};
 use quote::{quote, quote_spanned, ToTokens};
 use syn::buffer::Cursor;
@@ -6,6 +5,8 @@ use syn::ext::IdentExt;
 use syn::parse::{Parse, ParseStream};
 use syn::spanned::Spanned;
 use syn::{braced, token, Token};
+
+use crate::PeekValue;
 
 mod html_block;
 mod html_component;
@@ -21,7 +22,7 @@ mod html_node;
 mod tag;
 
 use html_block::HtmlBlock;
-use html_component::HtmlComponent;
+use html_component::{is_component_name, HtmlComponent};
 pub use html_dashed_name::HtmlDashedName;
 use html_element::HtmlElement;
 use html_if::HtmlIf;
@@ -120,14 +121,10 @@ impl HtmlTree {
                 Some(HtmlType::Component)
             } else if input.peek(Ident::peek_any) {
                 let ident = Ident::parse_any(&input).ok()?;
-                let ident_str = ident.to_string();
 
                 if input.peek(Token![=]) || (input.peek(Token![?]) && input.peek2(Token![=])) {
                     Some(HtmlType::List)
-                } else if ident_str.chars().next().unwrap().is_ascii_uppercase()
-                    || input.peek(Token![::])
-                    || is_ide_completion() && ident_str.chars().any(|c| c.is_ascii_uppercase())
-                {
+                } else if input.peek(Token![::]) || is_component_name(&ident) {
                     Some(HtmlType::Component)
                 } else {
                     Some(HtmlType::Element)

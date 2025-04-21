@@ -194,25 +194,51 @@ error[E0308]: mismatched types
   --> tests/html_macro/element-fail.rs:34:28
    |
 34 |     html! { <input checked=1 /> };
-   |                            ^ expected `Option<bool>`, found `Option<{integer}>`
+   |                            ^
+   |                            |
+   |                            expected `bool`, found integer
+   |                            arguments to this enum variant are incorrect
    |
-   = note: expected enum `Option<bool>`
-              found enum `Option<{integer}>`
+help: the type constructed contains `{integer}` due to the type of the argument passed
+  --> tests/html_macro/element-fail.rs:34:28
+   |
+34 |     html! { <input checked=1 /> };
+   |                            ^ this argument influences the type of `{{root}}`
+note: tuple variant defined here
+  --> $RUST/core/src/option.rs
+   |
+   |     Some(#[stable(feature = "rust1", since = "1.0.0")] T),
+   |     ^^^^
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0308]: mismatched types
   --> tests/html_macro/element-fail.rs:35:29
    |
 35 |     html! { <input checked={Some(false)} /> };
-   |                             ^^^^ expected `Option<bool>`, found `Option<Option<bool>>`
+   |                             ----^^^^^^^
+   |                             |
+   |                             expected `bool`, found `Option<bool>`
+   |                             arguments to this enum variant are incorrect
    |
-   = note: expected enum `Option<bool>`
-              found enum `Option<Option<bool>>`
+   = note: expected type `bool`
+              found enum `Option<bool>`
+help: the type constructed contains `Option<bool>` due to the type of the argument passed
+  --> tests/html_macro/element-fail.rs:35:29
+   |
+35 |     html! { <input checked={Some(false)} /> };
+   |                             ^^^^-------
+   |                             |
+   |                             this argument influences the type of `{{root}}`
+note: tuple variant defined here
+  --> $RUST/core/src/option.rs
+   |
+   |     Some(#[stable(feature = "rust1", since = "1.0.0")] T),
+   |     ^^^^
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
-help: consider using `Option::expect` to unwrap the `Option<Option<bool>>` value, panicking if the value is an `Option::None`
+help: use `Option::is_some` to test if the `Option` has a value
    |
-35 |     html! { <input checked={Some(false)} /> }.expect("REASON");
-   |                                              +++++++++++++++++
+35 |     html! { <input checked={Some(false).is_some()} /> };
+   |                                        ++++++++++
 
 error[E0308]: mismatched types
   --> tests/html_macro/element-fail.rs:36:29

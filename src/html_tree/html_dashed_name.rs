@@ -8,7 +8,7 @@ use syn::spanned::Spanned;
 use syn::{LitStr, Token};
 
 use crate::stringify::Stringify;
-use crate::{non_capitalized_ascii, Peek};
+use crate::{DisplayExt, Peek};
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct HtmlDashedName {
@@ -41,7 +41,7 @@ impl fmt::Display for HtmlDashedName {
 impl Peek<'_, Self> for HtmlDashedName {
     fn peek(cursor: Cursor) -> Option<(Self, Cursor)> {
         let (name, cursor) = cursor.ident()?;
-        if !non_capitalized_ascii(&name.to_string()) {
+        if !name.is_non_capitalized_ascii() {
             return None;
         }
 
