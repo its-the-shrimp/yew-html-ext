@@ -26,7 +26,7 @@ error: duplicate key for a node in a `for`-loop
   --> tests/html_macro/for-fail.rs:19:19
    |
 19 |         <div key={smth::KEY} />
-   |                   ^^^^^^^^^
+   |                   ^^^^
 
 error[E0308]: mismatched types
   --> tests/html_macro/for-fail.rs:10:19

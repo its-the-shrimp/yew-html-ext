@@ -1,4 +1,3 @@
-#![no_implicit_prelude]
 
 // Shadow primitives
 #[allow(non_camel_case_types)]
@@ -63,7 +62,7 @@ impl ::yew::Component for Container {
     }
 }
 
-#[derive(::std::clone::Clone, ::std::cmp::PartialEq)]
+#[derive(::std::clone::Clone, ::implicit_clone::ImplicitClone, ::std::cmp::PartialEq)]
 pub enum ChildrenVariants {
     Child(::yew::virtual_dom::VChild<Child>),
     AltChild(::yew::virtual_dom::VChild<AltChild>),
