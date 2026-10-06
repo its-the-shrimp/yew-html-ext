@@ -9,7 +9,7 @@ a number of syntactic extensions. Being a drop-in replacement, all one has to do
 1. Add it to the project's dependencies
 ```toml
 [dependencies]
-yew-html-ext = "0.3"
+yew-html-ext = "0.4"
 ```
 2. Replace uses/imports of `yew::html{_nested}` with `yew_html_ext::html{_nested}`
 

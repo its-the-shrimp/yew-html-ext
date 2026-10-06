@@ -25,54 +25,72 @@ error[E0277]: `()` is not an iterator
 error[E0277]: `()` doesn't implement `std::fmt::Display`
  --> tests/html_macro/iterable-fail.rs:7:17
   |
-7 |     html! { for Vec::<()>::new().into_iter() };
-  |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `std::fmt::Display` is not implemented for `()`
-  |
-  = help: the trait `FromIterator<A>` is implemented for `VNode`
-  = note: required for `()` to implement `ToString`
-  = note: required for `VNode` to implement `From<()>`
-  = note: required for `()` to implement `Into<VNode>`
-  = note: required for `VNode` to implement `FromIterator<()>`
+   7 |     html! { for Vec::<()>::new().into_iter() };
+     |                 ^^^ the trait `std::fmt::Display` is not implemented for `()`
+     |
+help: the trait `FromIterator<A>` is conditionally implemented for `VNode`
+    --> $CARGO/yew-0.23.0/src/virtual_dom/vnode.rs
+     |
+ 170 | impl<A: Into<VNode>> FromIterator<A> for VNode {
+     | ^^^^^^^^-----------^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `(): Into<VNode>`
+     = note: required for `()` to implement `ToString`
+     = note: required for `VNode` to implement `From<()>`
+     = note: required for `()` to implement `Into<VNode>`
+     = note: required for `VNode` to implement `FromIterator<()>`
 note: required by a bound in `collect`
- --> $RUST/core/src/iter/traits/iterator.rs
-  |
-  |     fn collect<B: FromIterator<Self::Item>>(self) -> B
-  |                   ^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Iterator::collect`
+    --> $RUST/core/src/iter/traits/iterator.rs
+     |
+     |     fn collect<B: FromIterator<Self::Item>>(self) -> B
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Iterator::collect`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> tests/html_macro/iterable-fail.rs:10:17
-   |
-10 |     html! { for empty };
-   |                 ^^^^^ the trait `std::fmt::Display` is not implemented for `()`
-   |
-   = help: the trait `FromIterator<A>` is implemented for `VNode`
-   = note: required for `()` to implement `ToString`
-   = note: required for `VNode` to implement `From<()>`
-   = note: required for `()` to implement `Into<VNode>`
-   = note: required for `VNode` to implement `FromIterator<()>`
+ --> tests/html_macro/iterable-fail.rs:10:17
+  |
+  10 |     html! { for empty };
+     |                 ^^^^^ the trait `std::fmt::Display` is not implemented for `()`
+     |
+help: the trait `FromIterator<A>` is conditionally implemented for `VNode`
+    --> $CARGO/yew-0.23.0/src/virtual_dom/vnode.rs
+     |
+ 170 | impl<A: Into<VNode>> FromIterator<A> for VNode {
+     | ^^^^^^^^-----------^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `(): Into<VNode>`
+     = note: required for `()` to implement `ToString`
+     = note: required for `VNode` to implement `From<()>`
+     = note: required for `()` to implement `Into<VNode>`
+     = note: required for `VNode` to implement `FromIterator<()>`
 note: required by a bound in `collect`
-  --> $RUST/core/src/iter/traits/iterator.rs
-   |
-   |     fn collect<B: FromIterator<Self::Item>>(self) -> B
-   |                   ^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Iterator::collect`
+    --> $RUST/core/src/iter/traits/iterator.rs
+     |
+     |     fn collect<B: FromIterator<Self::Item>>(self) -> B
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Iterator::collect`
 
 error[E0277]: `()` doesn't implement `std::fmt::Display`
-  --> tests/html_macro/iterable-fail.rs:13:18
-   |
-13 |     html! { {for empty.iter()} };
-   |                  ^^^^^^^^^^^^ the trait `std::fmt::Display` is not implemented for `()`
-   |
-   = help: the trait `FromIterator<A>` is implemented for `VNode`
-   = note: required for `&()` to implement `std::fmt::Display`
-   = note: required for `&()` to implement `ToString`
-   = note: required for `VNode` to implement `From<&()>`
-   = note: required for `&()` to implement `Into<VNode>`
-   = note: required for `VNode` to implement `FromIterator<&()>`
+ --> tests/html_macro/iterable-fail.rs:13:18
+  |
+  13 |     html! { {for empty.iter()} };
+     |                  ^^^^^ the trait `std::fmt::Display` is not implemented for `()`
+     |
+help: the trait `FromIterator<A>` is conditionally implemented for `VNode`
+    --> $CARGO/yew-0.23.0/src/virtual_dom/vnode.rs
+     |
+ 170 | impl<A: Into<VNode>> FromIterator<A> for VNode {
+     | ^^^^^^^^-----------^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |         |
+     |         unsatisfied requirement introduced here: `&(): Into<VNode>`
+     = note: required for `&()` to implement `std::fmt::Display`
+     = note: required for `&()` to implement `ToString`
+     = note: required for `VNode` to implement `From<&()>`
+     = note: required for `&()` to implement `Into<VNode>`
+     = note: required for `VNode` to implement `FromIterator<&()>`
 note: required by a bound in `collect`
-  --> $RUST/core/src/iter/traits/iterator.rs
-   |
-   |     fn collect<B: FromIterator<Self::Item>>(self) -> B
-   |                   ^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Iterator::collect`
+    --> $RUST/core/src/iter/traits/iterator.rs
+     |
+     |     fn collect<B: FromIterator<Self::Item>>(self) -> B
+     |                   ^^^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `Iterator::collect`
 
 error[E0277]: `()` is not an iterator
   --> tests/html_macro/iterable-fail.rs:18:19
@@ -83,12 +101,12 @@ error[E0277]: `()` is not an iterator
    = help: the trait `Iterator` is not implemented for `()`
    = note: required for `()` to implement `IntoIterator`
 note: required by a bound in `into_node_iter`
-  --> /home/maa/.cargo/git/checkouts/yew-07f42ef43f99cbca/4d08a03/packages/yew/src/utils/mod.rs:10:9
+  --> $CARGO/yew-0.23.0/src/utils/mod.rs
    |
-8  | pub fn into_node_iter<IT, T, R>(it: IT) -> impl Iterator<Item = R>
+   | pub fn into_node_iter<IT, T, R>(it: IT) -> impl Iterator<Item = R>
    |        -------------- required by a bound in this function
-9  | where
-10 |     IT: IntoIterator<Item = T>,
+   | where
+   |     IT: IntoIterator<Item = T>,
    |         ^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `into_node_iter`
 
 error[E0277]: `()` is not an iterator
@@ -105,11 +123,11 @@ error[E0277]: `()` is not an iterator
    = help: the trait `Iterator` is not implemented for `()`
    = note: required for `()` to implement `IntoIterator`
 note: required by a bound in `into_node_iter`
-  --> /home/maa/.cargo/git/checkouts/yew-07f42ef43f99cbca/4d08a03/packages/yew/src/utils/mod.rs:10:9
+  --> $CARGO/yew-0.23.0/src/utils/mod.rs
    |
-8  | pub fn into_node_iter<IT, T, R>(it: IT) -> impl Iterator<Item = R>
+   | pub fn into_node_iter<IT, T, R>(it: IT) -> impl Iterator<Item = R>
    |        -------------- required by a bound in this function
-9  | where
-10 |     IT: IntoIterator<Item = T>,
+   | where
+   |     IT: IntoIterator<Item = T>,
    |         ^^^^^^^^^^^^^^^^^^^^^^ required by this bound in `into_node_iter`
    = note: this error originates in the macro `html` (in Nightly builds, run with -Z macro-backtrace for more info)
